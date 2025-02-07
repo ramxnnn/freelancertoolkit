@@ -1,0 +1,57 @@
+extends common/layout
+
+block content
+  h1 Freelancer Toolkit
+  p Welcome to your toolkit for freelancers! Explore the features below:
+  ul
+    li 
+      a(href="#" id="showCurrencyFormLink") Currency Converter
+    li 
+      a(href="#" id="showWorkspaceFormLink") Workspace Locator
+    li 
+      a(href="#" id="showTimezoneFormLink") Time Zone Finder
+
+  // Currency Converter Form (Initially hidden)
+  #currencyForm(style="display:none; margin-top: 20px;")
+    form#currencyConverterForm
+      .form-group
+        label(for="from") From Currency (e.g., USD):
+        input#from.form-control(type="text" required)
+      .form-group
+        label(for="to") To Currency (e.g., EUR):
+        input#to.form-control(type="text" required)
+      .form-group
+        label(for="amount") Amount:
+        input#amount.form-control(type="number" required)
+      button.btn.btn-success(type="submit") Convert
+
+  // Result Display for Currency Converter
+  #result(style="display:none; margin-top: 20px;")
+
+
+  // Workspace Locator Form (Initially hidden)
+  #workspaceForm(style="display:none; margin-top: 20px;")
+    form#workspaceLocatorForm
+      .form-group
+        label(for="location") Location (e.g., Toronto):
+        input#location.form-control(type="text" required)
+      button.btn.btn-primary(type="submit") Search Workspaces
+
+  // Result Display for Workspace Locator
+  #workspaceResult(style="margin-top: 20px;")
+
+  // Time Zone Finder Form (Initially hidden)
+  #timezoneForm(style="display:none; margin-top: 20px;")
+    form#timezoneFinderForm
+      .form-group
+        label(for="timezoneLocation") Enter a Location (e.g., New York):
+        input#timezoneLocation.form-control(type="text" required)
+      button.btn.btn-info(type="submit") Find Time Zone
+
+  // Result Display for Time Zone Finder
+  #timezoneResult(style="margin-top: 20px;")
+
+  // Link to external JavaScript files
+  script(src="/js/currencyConverter.js")
+  script(src="/js/workspaceLocator.js")
+  script(src="/js/timezoneFinder.js")

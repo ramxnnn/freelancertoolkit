@@ -1,0 +1,32 @@
+extends common/layout
+
+block content
+  h1 Currency Converter
+
+  form(id="currencyForm", method="get", action="#")
+    div
+      label(for="from") From Currency:
+      input(type="text", name="from", id="from", placeholder="e.g., USD", required)
+    div
+      label(for="to") To Currency:
+      input(type="text", name="to", id="to", placeholder="e.g., EUR", required)
+    div
+      label(for="amount") Amount:
+      input(type="number", name="amount", id="amount", placeholder="e.g., 100", required)
+    button(type="submit") Convert
+
+  // Show error message if there's an error passed from the backend
+  if error
+    div.alert.alert-danger
+      p= error
+
+  // Show the result if conversion was successful
+  div#result
+    if convertedAmount
+      h2 Conversion Result
+      p= "#{amount} #{from} is equal to #{convertedAmount} #{to}"
+    else
+      p Please enter the details and click 'Convert'.
+
+  // Include JavaScript to handle the form submission and update the result without refreshing the page
+  script(src="/scripts/currencyConverter.js")

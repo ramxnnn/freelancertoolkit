@@ -1,0 +1,7 @@
+extends common/layout
+
+block content
+  h1= title
+  ul
+    each workspace in workspaces
+      li= workspace.name

@@ -1,0 +1,24 @@
+doctype html
+html(lang="en")
+  head
+    title= title
+  body
+    h1 Timezone Finder
+
+
+    form(method="get", action="/timezones")
+      label(for="location") Enter a location:
+      input(type="text", name="location", id="location", required placeholder="E.g., Toronto, Canada")
+      
+      button(type="submit") Get Timezone
+
+    if timezone
+      h2 Timezone Information
+      p Timezone ID: #{timezone.timeZoneId}
+      p Timezone Name: #{timezone.timeZoneName}
+      p DST Offset: #{timezone.dstOffset} seconds
+      p Raw Offset: #{timezone.rawOffset} seconds
+    else if error
+      p(style="color:red") #{error}
+    else
+      p Enter a location to find its timezone.
