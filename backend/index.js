@@ -1,12 +1,15 @@
+require("dotenv").config();
+
 const express = require("express");
 const mongoose = require('mongoose');
-const dotenv = require("dotenv");
+const dotenv = require('dotenv');
 const axios = require("axios");
 const cors = require('cors');
 const path = require("path");
 const currency = require("./modules/api/currency");
 const places = require("./modules/api/places");
 const timezone = require("./modules/api/timezone");
+const mongoURI = process.env.MONGODB_URI;
 const Task = require('./models/Task'); // Import the Task model
 const User = require('./models/User'); // Import the User model
 const Workspace = require('./models/Workspace'); // Import the Workspace model
@@ -22,7 +25,7 @@ app.set("view engine", "pug");
 app.use(express.static(path.join(__dirname, "public")));
 
 // Setup MongoDB
-mongoose.connect('mongodb+srv://n01273481:Whited00r!@freelancecluster.cxczc.mongodb.net/freelancer_toolkit', {
+mongoose.connect(mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
