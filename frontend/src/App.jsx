@@ -1,18 +1,18 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './styles/styles.css';
-
 import Header from './components/Header';
+import CurrencyConverter from './components/CurrencyConverter';
+import WorkspaceFinder from './components/WorkspaceFinder';
+import TimezoneDisplay from './components/TimezoneDisplay';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import TaskManager from './components/TaskManager';
-import CurrencyConverter from './components/CurrencyConverter';
-import WorkspaceFinder from './components/WorkspaceFinder';
-import TimezoneDisplay from './components/TimezoneDisplay';
+import './styles/styles.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
+// PrivateRoute component to protect routes
 const PrivateRoute = ({ children }) => {
   const { user } = React.useContext(AuthContext);
   return user ? children : <Navigate to="/login" />;
@@ -24,8 +24,11 @@ const App = () => {
       <AuthProvider>
         <Header />
         <Routes>
+          {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
+          {/* Protected Routes */}
           <Route
             path="/dashboard"
             element={
@@ -42,19 +45,14 @@ const App = () => {
               </PrivateRoute>
             }
           />
-          <Route
-            path="/freelancer-tools"
-            element={
-              <PrivateRoute>
-                <div>
-                  <CurrencyConverter />
-                  <WorkspaceFinder />
-                  <TimezoneDisplay />
-                </div>
-              </PrivateRoute>
-            }
-          />
+
+          {/* Default Route */}
           <Route path="/" element={<Navigate to="/dashboard" />} />
+
+          {/* Other Public Routes */}
+          <Route path="/currency" element={<CurrencyConverter />} />
+          <Route path="/workspaces" element={<WorkspaceFinder />} />
+          <Route path="/timezone" element={<TimezoneDisplay />} />
         </Routes>
       </AuthProvider>
     </Router>

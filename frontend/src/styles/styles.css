@@ -1,3 +1,4 @@
+/* General Styles */
 #root {
     max-width: 1280px;
     margin: 0 auto;
@@ -7,8 +8,7 @@
     min-height: 100vh; /* Ensure full screen height */
 }
 
-
-/* Header container styling */
+/* Header Styles */
 header {
     background-color: #ffcccb; /* Pastel Pink background */
     color: #333; /* Darker text color for contrast */
@@ -19,21 +19,18 @@ header {
     margin-bottom: 2rem;
 }
 
-/* Aligning the h1 title */
 header h1 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
     font-weight: 700;
 }
 
-/* Styling the navigation */
 nav {
     display: flex;
     justify-content: center;
     gap: 2rem;
 }
 
-/* Navigation links */
 nav a {
     color: #5a5a5a; /* Light Gray color for the links */
     font-size: 1.1rem;
@@ -42,13 +39,12 @@ nav a {
     transition: color 0.3s, transform 0.3s;
 }
 
-/* Hover effect on nav links */
 nav a:hover {
     color: #ff69b4; /* Pastel Hot Pink color on hover */
     transform: scale(1.1);
 }
 
-/* Make the header and navigation responsive */
+/* Responsive Header */
 @media (max-width: 768px) {
     header {
         padding: 1rem;
@@ -69,121 +65,7 @@ nav a:hover {
     }
 }
 
-/* Logo styling */
-.logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-}
-
-/* Logo hover effect */
-.logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.react:hover {
-    filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-/* Add this in your CSS file */
-.custom-button {
-    background-color: #ffcccb; /* Pastel Pink background */
-    color: #333; /* Dark text color */
-    border: none;
-  }
-  
-  .custom-button:hover {
-    background-color: #ff69b4; /* Hot pink color on hover */
-  }
-  
-
-/* Keyframes for logo spinning animation */
-@keyframes logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-    a:nth-of-type(2) .logo {
-        animation: logo-spin infinite 20s linear;
-    }
-}
-
-/* Card styles */
-.card {
-    padding: 2em;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    background-color: #ffffff; /* White background for the card */
-    margin-bottom: 2rem;
-}
-
-/* Read the docs text style */
-.read-the-docs {
-    color: #888;
-}
-
-/* Flexbox layout for the homepage options */
-.homepage-options {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 2rem;
-    margin-top: 3rem;
-}
-
-/* Style for each option card */
-.option-card {
-    background-color: #e8f5e9; /* Pastel Green for option cards */
-    padding: 2rem;
-    border-radius: 10px;
-    width: 220px;
-    text-align: center;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.option-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* Icon styling inside option cards */
-.option-card .option-icon {
-    font-size: 2rem;
-    color: #007bff; /* Soft Blue color for icons */
-    margin-bottom: 1rem;
-}
-
-/* Title for each option */
-.option-card h3 {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-}
-
-/* Option description text */
-.option-card p {
-    color: #555;
-    font-size: 1rem;
-}
-
-/* Make the layout responsive for smaller screens */
-@media (max-width: 768px) {
-    .homepage-options {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .option-card {
-        width: 100%;
-    }
-}
-
-/* Button Styles for a consistent pastel theme */
+/* Button Styles */
 button {
     background-color: #ffcccb; /* Soft pastel pink */
     color: #333;
@@ -195,26 +77,154 @@ button {
     transition: background-color 0.3s, transform 0.3s;
 }
 
-/* Hover effect on buttons */
 button:hover {
     background-color: #ff69b4; /* Hot pink on hover */
     transform: scale(1.05);
 }
 
-/* Form input fields */
-input[type="text"] {
-    border-radius: 25px;
+/* Form Styles */
+form {
+    background-color: #ffffff; /* White background for forms */
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+textarea {
+    width: 100%;
     padding: 0.8rem 1.2rem;
     font-size: 1rem;
     border: 1px solid #ddd;
-    margin-right: 0.5rem;
-    width: 80%;
+    border-radius: 25px;
+    margin-bottom: 1rem;
+    transition: border-color 0.3s;
 }
 
-/* Make the layout responsive for smaller screens */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus,
+textarea:focus {
+    border-color: #ff69b4; /* Hot pink border on focus */
+    outline: none;
+}
+
+/* Alert Messages */
+.alert {
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.alert-danger {
+    background-color: #ffebee; /* Light red background for errors */
+    color: #c62828; /* Dark red text */
+}
+
+.alert-success {
+    background-color: #e8f5e9; /* Light green background for success */
+    color: #2e7d32; /* Dark green text */
+}
+
+/* Card Styles */
+.card {
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff; /* White background for the card */
+    margin-bottom: 2rem;
+}
+
+/* Task Manager Styles */
+.task-list {
+    list-style: none;
+    padding: 0;
+}
+
+.task-list li {
+    background-color: #e8f5e9; /* Pastel Green for task cards */
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.task-list li:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.task-list h5 {
+    margin-bottom: 0.5rem;
+}
+
+.task-list p {
+    margin: 0;
+    color: #555;
+}
+
+/* Dashboard Styles */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.dashboard-section {
+    background-color: #ffffff; /* White background for sections */
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Workspace Finder Styles */
+.workspace-list {
+    list-style: none;
+    padding: 0;
+}
+
+.workspace-list li {
+    background-color: #e8f5e9; /* Pastel Green for workspace cards */
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.workspace-list li:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.workspace-list h5 {
+    margin-bottom: 0.5rem;
+}
+
+.workspace-list p {
+    margin: 0;
+    color: #555;
+}
+
+/* Timezone Display Styles */
+.timezone-display {
+    background-color: #ffffff; /* White background for timezone display */
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Layout */
 @media (max-width: 768px) {
-    input[type="text"] {
-        width: 100%;
-        margin-bottom: 1rem;
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-section {
+        padding: 1rem;
     }
 }
