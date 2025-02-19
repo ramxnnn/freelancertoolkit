@@ -7,14 +7,20 @@ const Dashboard = () => {
   const { user } = useContext(AuthContext);
 
   return (
-    <div className="container mt-5">
-      <h2>Welcome, {user?.name}!</h2>
+    <div className="dashboard container mt-5">
+      <h2 className="text-center mb-4">Welcome, {user?.name}!</h2>
       <div className="row">
         <div className="col-md-6">
-          <TaskManager />
+          <div className="dashboard-section">
+            <h3 className="text-center mb-4">Task Manager</h3>
+            <TaskManager />
+          </div>
         </div>
         <div className="col-md-6">
-          <WorkspaceFinder />
+          <div className="dashboard-section">
+            <h3 className="text-center mb-4">Workspace Finder</h3>
+            <WorkspaceFinder />
+          </div>
         </div>
       </div>
     </div>

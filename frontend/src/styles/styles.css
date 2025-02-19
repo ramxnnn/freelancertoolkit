@@ -141,12 +141,19 @@ textarea:focus {
 }
 
 /* Task Manager Styles */
+.task-manager {
+    background-color: #ffffff; /* White background */
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 .task-list {
     list-style: none;
     padding: 0;
 }
 
-.task-list li {
+.task-card {
     background-color: #e8f5e9; /* Pastel Green for task cards */
     padding: 1rem;
     border-radius: 10px;
@@ -154,16 +161,16 @@ textarea:focus {
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.task-list li:hover {
+.task-card:hover {
     transform: scale(1.02);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.task-list h5 {
+.task-card h5 {
     margin-bottom: 0.5rem;
 }
 
-.task-list p {
+.task-card p {
     margin: 0;
     color: #555;
 }

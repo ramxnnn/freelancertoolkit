@@ -44,10 +44,10 @@ const TaskManager = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h2>Task Manager</h2>
+    <div className="task-manager">
+      <h2 className="text-center mb-4">Task Manager</h2>
       {error && <div className="alert alert-danger">{error}</div>}
-      <form onSubmit={handleAddTask}>
+      <form onSubmit={handleAddTask} className="card p-4 mb-4">
         <div className="mb-3">
           <label htmlFor="title" className="form-label">Title</label>
           <input
@@ -78,11 +78,11 @@ const TaskManager = () => {
             onChange={(e) => setDueDate(e.target.value)}
           />
         </div>
-        <button type="submit" className="btn btn-primary">Add Task</button>
+        <button type="submit" className="btn btn-primary w-100">Add Task</button>
       </form>
-      <ul className="list-group mt-4">
+      <ul className="task-list">
         {tasks.map((task) => (
-          <li key={task._id} className="list-group-item">
+          <li key={task._id} className="task-card">
             <h5>{task.title}</h5>
             <p>{task.description}</p>
             <p><strong>Due Date:</strong> {new Date(task.dueDate).toLocaleDateString()}</p>
