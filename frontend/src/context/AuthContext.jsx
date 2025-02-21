@@ -1,4 +1,3 @@
-// src/context/AuthContext.js
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -17,23 +16,30 @@ const AuthProvider = ({ children }) => {
           const response = await axios.get('https://freelancer-toolkit.onrender.com/protected', {
             headers: { Authorization: `Bearer ${token}` },
           });
-          setUser(response.data.user);
+          setUser(response.data.user); // Set user if token is valid
+        } else {
+          setUser(null); // No token means no user
         }
       } catch (error) {
+        // Handle token expiry or any other error (e.g. unauthorized)
         console.error('Authentication check failed:', error);
+        localStorage.removeItem('token'); // Remove invalid token
+        setUser(null); // Reset user state on failure
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); // Make sure loading is set to false after auth check
       }
     };
+
     checkAuth();
   }, []);
 
   const login = async (email, password) => {
     try {
       const response = await axios.post('https://freelancer-toolkit.onrender.com/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      setUser(response.data.user);
+      localStorage.setItem('token', response.data.token); // Save token to localStorage
+      setUser(response.data.user); // Set the user in the state
     } catch (error) {
+      console.error("Login error:", error);
       throw new Error(error.response?.data?.error || 'Login failed.');
     }
   };
@@ -41,16 +47,17 @@ const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     try {
       const response = await axios.post('https://freelancer-toolkit.onrender.com/register', { name, email, password });
-      localStorage.setItem('token', response.data.token);
-      setUser(response.data.user);
+      localStorage.setItem('token', response.data.token); // Save token to localStorage
+      setUser(response.data.user); // Set the user in the state
     } catch (error) {
+      console.error("Registration error:", error);
       throw new Error(error.response?.data?.error || 'Registration failed.');
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+    localStorage.removeItem('token'); // Remove token from localStorage
+    setUser(null); // Reset user state
   };
 
   return (

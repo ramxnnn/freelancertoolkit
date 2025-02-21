@@ -225,6 +225,81 @@ textarea:focus {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Dashboard Styles */
+.dashboard {
+    background-color: #ffffff; /* White background */
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.quick-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.dashboard-section {
+    background-color: #f9f9f9; /* Light gray background */
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.task-list,
+.currency-list,
+.timezone-list,
+.workspace-list {
+    list-style: none;
+    padding: 0;
+}
+
+.task-card,
+.currency-card,
+.timezone-card,
+.workspace-card {
+    background-color: #ffffff; /* White background for cards */
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.task-card:hover,
+.currency-card:hover,
+.timezone-card:hover,
+.workspace-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.task-card h5,
+.workspace-card h5 {
+    margin-bottom: 0.5rem;
+}
+
+.task-card p,
+.currency-card p,
+.timezone-card p,
+.workspace-card p {
+    margin: 0;
+    color: #555;
+}
+
+/* Responsive Layout */
+@media (max-width: 768px) {
+    .quick-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .dashboard-section {
+        padding: 1rem;
+    }
+}
+
 /* Responsive Layout */
 @media (max-width: 768px) {
     .dashboard {

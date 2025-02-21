@@ -10,6 +10,7 @@ const currency = require("./modules/api/currency");
 const places = require("./modules/api/places");
 const timezone = require("./modules/api/timezone");
 const mongoURI = process.env.MONGODB_URI;
+const authRoutes = require("./routes/authRoutes");
 const Task = require('./models/Task'); // Import the Task model
 const User = require('./models/User'); // Import the User model
 const Workspace = require('./models/Workspace'); // Import the Workspace model
@@ -19,16 +20,14 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 8888;
 
+
 // Setup Pug as the view engine
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 app.use(express.static(path.join(__dirname, "public")));
 
 // Setup MongoDB
-mongoose.connect(mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(mongoURI)
 .then(() => console.log('Connected to MongoDB Atlas'))
 .catch((err) => console.error('Error connecting to MongoDB Atlas:', err));
 
@@ -45,6 +44,9 @@ app.use(cors({
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Auth Routes
+app.use(authRoutes);
 
 // Routes
 app.get("/", (req, res) => {

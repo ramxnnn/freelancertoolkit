@@ -2,14 +2,43 @@ import axios from 'axios';
 
 const API_URL = 'https://freelancer-toolkit.onrender.com';
 
+// Register a new user
+export const register = async (name, email, password) => {
+  try {
+    const response = await axios.post(`${API_URL}/register`, {
+      name,
+      email,
+      password,
+    });
+    return response.data; // Returns user data and token
+  } catch (error) {
+    console.error('Error registering user:', error.message);
+    throw new Error(error.response?.data?.error || 'Registration failed. Please try again.');
+  }
+};
+
+// Login user
+export const login = async (email, password) => {
+  try {
+    const response = await axios.post(`${API_URL}/login`, {
+      email,
+      password,
+    });
+    return response.data; // Returns user data and token
+  } catch (error) {
+    console.error('Error logging in:', error.message);
+    throw new Error(error.response?.data?.error || 'Login failed. Please check your credentials.');
+  }
+};
+
 // Fetch exchange rate for currency conversion
 export const getExchangeRate = async (from, to, amount = 1) => {
   try {
     const response = await axios.get(`${API_URL}/currency?from=${from}&to=${to}&amount=${amount}`);
-    return response.data;  // Returns the converted amount
+    return response.data; // Returns the converted amount
   } catch (error) {
-    console.error("Error fetching exchange rate:", error.message);
-    throw new Error("Unable to fetch exchange rates. Please check your input or try again later.");
+    console.error('Error fetching exchange rate:', error.message);
+    throw new Error('Unable to fetch exchange rates. Please check your input or try again later.');
   }
 };
 
@@ -17,10 +46,10 @@ export const getExchangeRate = async (from, to, amount = 1) => {
 export const getWorkspaces = async (location) => {
   try {
     const response = await axios.get(`${API_URL}/workspaces?location=${location}`);
-    return response.data;  // Returns workspace results
+    return response.data; // Returns workspace results
   } catch (error) {
-    console.error("Error fetching workspace data:", error.message);
-    throw new Error("Unable to fetch workspaces. Please try again later.");
+    console.error('Error fetching workspace data:', error.message);
+    throw new Error('Unable to fetch workspaces. Please try again later.');
   }
 };
 
@@ -28,9 +57,9 @@ export const getWorkspaces = async (location) => {
 export const getTimezone = async (lat, lng, timestamp) => {
   try {
     const response = await axios.get(`${API_URL}/timezone?lat=${lat}&lng=${lng}&timestamp=${timestamp}`);
-    return response.data;  // Returns timezone data
+    return response.data; // Returns timezone data
   } catch (error) {
-    console.error("Error fetching timezone data:", error.message);
-    throw new Error("Unable to fetch timezone data. Please try again later.");
+    console.error('Error fetching timezone data:', error.message);
+    throw new Error('Unable to fetch timezone data. Please try again later.');
   }
 };

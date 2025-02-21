@@ -14,7 +14,13 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 // PrivateRoute component to protect routes
 const PrivateRoute = ({ children }) => {
-  const { user } = React.useContext(AuthContext);
+  const { user, isLoading } = React.useContext(AuthContext);
+
+  // Show loading state until the auth check is done
+  if (isLoading) {
+    return <div>Loading...</div>;  // Or a more elegant loading state
+  }
+
   return user ? children : <Navigate to="/login" />;
 };
 
