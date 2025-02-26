@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { FaTasks, FaMoneyBillWave, FaClock, FaMapMarkerAlt, FaPlus } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
@@ -6,10 +6,44 @@ import { Link } from 'react-router-dom';
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
 
+  const [invoices, setInvoices] = useState([]);
+  const [moneyMade, setMoneyMade] = useState(0);
+  const [moneyOwed, setMoneyOwed] = useState(0);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      const response = await fetch(`/invoices/${user.id}`);
+      const data = await response.json();
+      setInvoices(data);
+
+      let moneyMadeTotal = 0;
+      let moneyOwedTotal = 0;
+
+      data.forEach((invoice) => {
+        if (invoice.status === 'Paid') {
+          moneyMadeTotal += invoice.amount;
+        } else if (invoice.status === 'Pending') {
+          moneyOwedTotal += invoice.amount;
+        }
+      });
+
+      setMoneyMade(moneyMadeTotal);
+      setMoneyOwed(moneyOwedTotal);
+    };
+
+    fetchInvoices();
+  }, [user.id]);
+
   return (
     <div className="container mt-5">
       <h2 className="text-center mb-4">Welcome Back, {user?.name}! 👋</h2>
-      
+
+      {/* Dashboard Overview */}
+      <div className="text-center mb-4">
+        <p><strong>Money Made: </strong>${moneyMade}</p>
+        <p><strong>Money Owed: </strong>${moneyOwed}</p>
+      </div>
+
       {/* Quick Actions */}
       <div className="d-flex justify-content-center gap-3 mb-4">
         <button className="btn btn-primary d-flex align-items-center gap-2">
@@ -19,7 +53,7 @@ const Dashboard = () => {
           <FaMapMarkerAlt /> Find Workspace
         </button>
       </div>
-      
+
       <div className="row row-cols-1 row-cols-md-2 g-4">
         {/* Recent Tasks */}
         <div className="col">
@@ -41,7 +75,22 @@ const Dashboard = () => {
             </ul>
           </div>
         </div>
-        
+
+        {/* Invoice Creation */}
+        <div className="col">
+          <div className="card h-100 p-3 shadow rounded">
+            <h3 className="text-center d-flex align-items-center gap-2">
+              <FaMoneyBillWave /> Create Invoice
+            </h3>
+            <div className="text-center mt-3">
+              <Link to="/invoice/create" className="btn btn-primary">Create Invoice</Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Completed Projects Section */}
+      <div className="row row-cols-1 row-cols-md-2 g-4 mt-5">
         {/* Currency Conversions */}
         <div className="col">
           <div className="card h-100 p-3 shadow rounded">
@@ -58,13 +107,12 @@ const Dashboard = () => {
                 <p>Rate: 1.1</p>
               </li>
             </ul>
-            {/* Add link to Currency Converter */}
             <div className="text-center mt-3">
               <Link to="/currency" className="btn btn-primary">Go to Currency Converter</Link>
             </div>
           </div>
         </div>
-        
+
         {/* Timezones */}
         <div className="col">
           <div className="card h-100 p-3 shadow rounded">
@@ -81,38 +129,13 @@ const Dashboard = () => {
                 <p>UTC Offset: +0 hours</p>
               </li>
             </ul>
-            {/* Add link to Timezone Display */}
             <div className="text-center mt-3">
               <Link to="/timezone" className="btn btn-primary">Go to Timezone Display</Link>
             </div>
           </div>
         </div>
-        
-        {/* Nearby Workspaces */}
-        <div className="col">
-          <div className="card h-100 p-3 shadow rounded">
-            <h3 className="text-center d-flex align-items-center gap-2">
-              <FaMapMarkerAlt /> Nearby Workspaces
-            </h3>
-            <ul className="list-unstyled">
-              <li className="border p-3 rounded mb-2 bg-light">
-                <h5>Cozy Cafe</h5>
-                <p>📍 123 Main St, Toronto</p>
-                <p>⭐ Rating: 4.5</p>
-              </li>
-              <li className="border p-3 rounded bg-light">
-                <h5>Quiet Library</h5>
-                <p>📍 456 Elm St, Toronto</p>
-                <p>⭐ Rating: 4.2</p>
-              </li>
-            </ul>
-            {/* Add link to Workspace Finder */}
-            <div className="text-center mt-3">
-              <Link to="/workspaces" className="btn btn-primary">Go to Workspace Finder</Link>
-            </div>
-          </div>
-        </div>
       </div>
+
     </div>
   );
 };
