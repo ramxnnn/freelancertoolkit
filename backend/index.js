@@ -8,6 +8,7 @@ const cors = require('cors');
 const path = require("path");
 const currency = require("./modules/api/currency");
 const places = require("./modules/api/places");
+const Invoice = require("./models/Invoice");
 const timezone = require("./modules/api/timezone");
 const mongoURI = process.env.MONGODB_URI;
 const authRoutes = require("./routes/authRoutes");
@@ -248,6 +249,28 @@ app.get('/currency-conversions/:userId', async (req, res) => {
   try {
     const currencyConversions = await CurrencyConversion.find({ userId: req.params.userId });
     res.json(currencyConversions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create Invoice
+app.post('/invoices', async (req, res) => {
+  try {
+    const { userId, clientName, services, amount, dueDate, status } = req.body;
+    const invoice = new Invoice({ userId, clientName, services, amount, dueDate, status });
+    await invoice.save();
+    res.status(201).json(invoice);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Get Invoices for a User
+app.get('/invoices/:userId', async (req, res) => {
+  try {
+    const invoices = await Invoice.find({ userId: req.params.userId });
+    res.json(invoices);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
