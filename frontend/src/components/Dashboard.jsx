@@ -6,31 +6,60 @@ import { Link } from 'react-router-dom';
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
 
-  const [invoices, setInvoices] = useState([]);
+  const [completedProjects, setCompletedProjects] = useState([]);
   const [moneyMade, setMoneyMade] = useState(0);
   const [moneyOwed, setMoneyOwed] = useState(0);
 
   useEffect(() => {
+    // Simulating fetching completed projects data
+    const fetchCompletedProjects = async () => {
+      // Mock data simulating your projects with currency and timezone
+      const projects = [
+        {
+          id: 1,
+          name: "Capstone Project",
+          status: "Completed",
+          dueDate: "2023-12-31",
+          location: "Toronto, Canada",
+          currency: "CAD",
+          timezone: "EST",
+        },
+        {
+          id: 2,
+          name: "Freelance Website",
+          status: "Completed",
+          dueDate: "2023-11-15",
+          location: "New York, USA",
+          currency: "USD",
+          timezone: "EST",
+        },
+      ];
+
+      setCompletedProjects(projects);
+    };
+
+    // Simulating fetching invoices (money made and money owed)
     const fetchInvoices = async () => {
-      const response = await fetch(`/invoices/${user.id}`);
-      const data = await response.json();
-      setInvoices(data);
+      // Mock data for invoices
+      const invoices = [
+        { amount: 500, status: "Paid" },
+        { amount: 300, status: "Pending" },
+      ];
 
       let moneyMadeTotal = 0;
       let moneyOwedTotal = 0;
-
-      data.forEach((invoice) => {
-        if (invoice.status === 'Paid') {
+      invoices.forEach((invoice) => {
+        if (invoice.status === "Paid") {
           moneyMadeTotal += invoice.amount;
-        } else if (invoice.status === 'Pending') {
+        } else if (invoice.status === "Pending") {
           moneyOwedTotal += invoice.amount;
         }
       });
-
       setMoneyMade(moneyMadeTotal);
       setMoneyOwed(moneyOwedTotal);
     };
 
+    fetchCompletedProjects();
     fetchInvoices();
   }, [user.id]);
 
@@ -55,87 +84,35 @@ const Dashboard = () => {
       </div>
 
       <div className="row row-cols-1 row-cols-md-2 g-4">
-        {/* Recent Tasks */}
+        {/* Completed Projects Section */}
         <div className="col">
           <div className="card h-100 p-3 shadow rounded">
             <h3 className="text-center d-flex align-items-center gap-2">
-              <FaTasks /> Recent Tasks
+              <FaTasks /> Completed Projects
             </h3>
             <ul className="list-unstyled">
-              <li className="border p-3 rounded mb-2 bg-light">
-                <h5>Complete Capstone Project</h5>
-                <p>Status: <span className="text-warning">In Progress</span></p>
-                <p>Due Date: 2023-12-31</p>
-              </li>
-              <li className="border p-3 rounded bg-light">
-                <h5>Prepare Presentation</h5>
-                <p>Status: <span className="text-danger">Pending</span></p>
-                <p>Due Date: 2023-11-15</p>
-              </li>
-            </ul>
-          </div>
-        </div>
+              {completedProjects.map((project) => (
+                <li key={project.id} className="border p-3 rounded mb-2 bg-light">
+                  <h5>{project.name}</h5>
+                  <p>Status: <span className={project.status === "Completed" ? "text-success" : "text-warning"}>{project.status}</span></p>
+                  <p>Due Date: {project.dueDate}</p>
 
-        {/* Invoice Creation */}
-        <div className="col">
-          <div className="card h-100 p-3 shadow rounded">
-            <h3 className="text-center d-flex align-items-center gap-2">
-              <FaMoneyBillWave /> Create Invoice
-            </h3>
-            <div className="text-center mt-3">
-              <Link to="/invoice/create" className="btn btn-primary">Create Invoice</Link>
-            </div>
+                  {/* Display Timezone and Currency Conversion */}
+                  <div className="d-flex justify-content-between">
+                    <div>
+                      <p><strong>Timezone: </strong>{project.timezone}</p>
+                      <p><strong>Currency: </strong>{project.currency}</p>
+                    </div>
+                    <div className="text-center">
+                      <Link to={`/project-details/${project.id}`} className="btn btn-primary">View Details</Link>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
-
-      {/* Completed Projects Section */}
-      <div className="row row-cols-1 row-cols-md-2 g-4 mt-5">
-        {/* Currency Conversions */}
-        <div className="col">
-          <div className="card h-100 p-3 shadow rounded">
-            <h3 className="text-center d-flex align-items-center gap-2">
-              <FaMoneyBillWave /> Currency Conversions
-            </h3>
-            <ul className="list-unstyled">
-              <li className="border p-3 rounded mb-2 bg-light">
-                <p><strong>100 USD → 130 CAD</strong></p>
-                <p>Rate: 1.3</p>
-              </li>
-              <li className="border p-3 rounded bg-light">
-                <p><strong>50 EUR → 55 USD</strong></p>
-                <p>Rate: 1.1</p>
-              </li>
-            </ul>
-            <div className="text-center mt-3">
-              <Link to="/currency" className="btn btn-primary">Go to Currency Converter</Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Timezones */}
-        <div className="col">
-          <div className="card h-100 p-3 shadow rounded">
-            <h3 className="text-center d-flex align-items-center gap-2">
-              <FaClock /> Timezones
-            </h3>
-            <ul className="list-unstyled">
-              <li className="border p-3 rounded mb-2 bg-light">
-                <p>New York: <strong>10:00 AM</strong></p>
-                <p>UTC Offset: -5 hours</p>
-              </li>
-              <li className="border p-3 rounded bg-light">
-                <p>London: <strong>3:00 PM</strong></p>
-                <p>UTC Offset: +0 hours</p>
-              </li>
-            </ul>
-            <div className="text-center mt-3">
-              <Link to="/timezone" className="btn btn-primary">Go to Timezone Display</Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
   );
 };

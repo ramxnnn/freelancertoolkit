@@ -14,6 +14,7 @@ const mongoURI = process.env.MONGODB_URI;
 const authRoutes = require("./routes/authRoutes");
 const Task = require('./models/Task'); // Import the Task model
 const User = require('./models/User'); // Import the User model
+const Project = require('./models/Project'); // Import Project model
 const Workspace = require('./models/Workspace'); // Import the Workspace model
 const CurrencyConversion = require('./models/CurrencyConversion'); // Import the CurrencyConversion model
 
@@ -275,6 +276,67 @@ app.get('/invoices/:userId', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Create a Project
+app.post('/projects', async (req, res) => {
+  try {
+    const { name, status, dueDate, location, currency } = req.body;
+
+    // Fetch timezone and currency conversion
+    const placesUrl = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(location)}&inputtype=textquery&fields=geometry&key=${process.env.PLACES_API_KEY}`;
+    const placesResponse = await axios.get(placesUrl);
+
+    if (!placesResponse.data.candidates || placesResponse.data.candidates.length === 0) {
+      return res.status(400).json({ message: `No results found for "${location}".` });
+    }
+
+    const { lat, lng } = placesResponse.data.candidates[0].geometry.location;
+    const timestamp = Math.floor(Date.now() / 1000);
+    const tz = await timezone.getTimezone(lat, lng, timestamp);
+
+    const convertedRate = await currency.getExchangeRates('USD', currency, 1); // Convert USD to the given currency
+
+    if (!tz.timeZoneId || !convertedRate) {
+      return res.status(400).json({ message: 'Failed to fetch timezone or currency data' });
+    }
+
+    const project = new Project({
+      name,
+      status,
+      dueDate,
+      location,
+      currency,
+      timezone: tz.timeZoneId,
+    });
+
+    await project.save();
+    res.status(201).json(project);
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating project', error });
+  }
+});
+
+// Get All Projects
+app.get('/projects', async (req, res) => {
+  try {
+    const projects = await Project.find();
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching projects', error });
+  }
+});
+
+// Delete a Project
+app.delete('/projects/:id', async (req, res) => {
+  try {
+    const project = await Project.findByIdAndDelete(req.params.id);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    res.status(200).json({ message: 'Project deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting project', error });
+  }
+});
+
 
 // Start Server
 app.listen(port, () => {
