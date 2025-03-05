@@ -1,6 +1,9 @@
 import React, { useReducer } from 'react';
 import { getExchangeRate } from '../api/api';
-import 'bootstrap/dist/css/bootstrap.min.css'; 
+import Card from './Card'; // Reusable Card component
+import Button from './Button'; // Reusable Button component
+import Input from './Input'; // Reusable Input component
+
 // Reducer function for currency converter
 const initialState = {
   fromCurrency: 'USD',
@@ -45,15 +48,15 @@ const CurrencyConverter = () => {
   };
 
   return (
-    <section id="currency" className="container mt-5">
-      <h2 className="text-center text-primary mb-4">Currency Converter</h2>
-      <div className="card shadow-lg p-4">
-        <div className="row mb-3">
-          <div className="col-md-4">
-            <label htmlFor="fromCurrency" className="form-label">From Currency</label>
+    <section id="currency" className="container mx-auto p-4">
+      <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">Currency Converter</h2>
+      <Card className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label htmlFor="fromCurrency" className="block text-sm font-medium text-gray-700 mb-1">From Currency</label>
             <select
               id="fromCurrency"
-              className="form-select"
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={state.fromCurrency}
               onChange={(e) => dispatch({ type: 'SET_FROM_CURRENCY', payload: e.target.value })}
             >
@@ -66,14 +69,14 @@ const CurrencyConverter = () => {
               <option value="JPY">JPY</option>
             </select>
           </div>
-          <div className="col-md-4 d-flex align-items-center justify-content-center">
-            <span className="text-muted">to</span>
+          <div className="flex items-center justify-center">
+            <span className="text-gray-500">to</span>
           </div>
-          <div className="col-md-4">
-            <label htmlFor="toCurrency" className="form-label">To Currency</label>
+          <div>
+            <label htmlFor="toCurrency" className="block text-sm font-medium text-gray-700 mb-1">To Currency</label>
             <select
               id="toCurrency"
-              className="form-select"
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={state.toCurrency}
               onChange={(e) => dispatch({ type: 'SET_TO_CURRENCY', payload: e.target.value })}
             >
@@ -88,34 +91,33 @@ const CurrencyConverter = () => {
           </div>
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="amount" className="form-label">Amount</label>
-          <input
+        <div className="mb-4">
+          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+          <Input
             type="number"
             id="amount"
-            className="form-control"
             value={state.amount}
             onChange={(e) => dispatch({ type: 'SET_AMOUNT', payload: e.target.value })}
           />
         </div>
 
-        <button className="btn btn-primary w-100" onClick={handleConvert}>Convert</button>
+        <Button onClick={handleConvert} className="w-full">Convert</Button>
 
         {state.convertedAmount !== null && (
-          <div className="mt-3">
-            <h5 className="text-success">Converted Amount:</h5>
-            <p>
+          <div className="mt-4">
+            <h5 className="text-lg font-semibold text-green-600">Converted Amount:</h5>
+            <p className="text-gray-700">
               {state.convertedAmount} {state.toCurrency}
             </p>
           </div>
         )}
 
         {state.error && (
-          <div className="alert alert-danger mt-3">
+          <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
             {state.error}
           </div>
         )}
-      </div>
+      </Card>
     </section>
   );
 };

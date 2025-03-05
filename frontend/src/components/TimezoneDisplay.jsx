@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-
+import Card from './Card'; // Reusable Card component
+import Button from './Button'; // Reusable Button component
+import Input from './Input'; // Reusable Input component
 
 const TimezoneDisplay = () => {
   const [city, setCity] = useState('');
@@ -25,32 +27,30 @@ const TimezoneDisplay = () => {
   };
 
   return (
-    <section id="timezone" className="container mt-5">
-      <h2 className="text-center mb-4">Timezone Information</h2>
-      <div className="row justify-content-center">
-        <div className="col-md-6 col-12">
-          {}
-          <div className="d-flex mb-3">
-            <input
+    <section id="timezone" className="container mx-auto p-4">
+      <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">Timezone Information</h2>
+      <div className="flex justify-center">
+        <div className="w-full max-w-md">
+          <div className="flex gap-2 mb-4">
+            <Input
               type="text"
-              className="form-control me-2" 
               value={city}
               onChange={(e) => setCity(e.target.value)}
               placeholder="Enter city name"
             />
-            <button className="btn btn-primary" onClick={handleGetTimezone}>
-              Get Timezone
-            </button>
+            <Button onClick={handleGetTimezone}>Get Timezone</Button>
           </div>
-          {error && <div className="alert alert-danger">{error}</div>}
-          {timezone && (
-            <div className="card mt-4">
-              <div className="card-body">
-                <h5 className="card-title">Timezone Details</h5>
-                <p className="card-text"><strong>Timezone:</strong> {timezone.timeZoneName}</p>
-                <p className="card-text"><strong>Timezone ID:</strong> {timezone.timeZoneId}</p>
-              </div>
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
             </div>
+          )}
+          {timezone && (
+            <Card className="p-6">
+              <h5 className="text-xl font-bold mb-4">Timezone Details</h5>
+              <p className="text-gray-700"><strong>Timezone:</strong> {timezone.timeZoneName}</p>
+              <p className="text-gray-700"><strong>Timezone ID:</strong> {timezone.timeZoneId}</p>
+            </Card>
           )}
         </div>
       </div>

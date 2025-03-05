@@ -10,7 +10,10 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import TaskManager from './components/TaskManager';
 import './styles/styles.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Reusable Components
+import Button from './components/Button';
+import Card from './components/Card';
 
 // PrivateRoute component to protect routes
 const PrivateRoute = ({ children }) => {
@@ -18,7 +21,7 @@ const PrivateRoute = ({ children }) => {
 
   // Show loading state until the auth check is done
   if (isLoading) {
-    return <div>Loading...</div>;  // Or a more elegant loading state
+    return <div className="flex justify-center items-center h-screen">Loading...</div>; // Tailwind loading state
   }
 
   return user ? children : <Navigate to="/login" />;

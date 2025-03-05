@@ -1,115 +1,163 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import { FaTasks, FaMoneyBillWave, FaClock, FaMapMarkerAlt, FaPlus } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { FaTasks, FaMoneyBillWave, FaMoon, FaSun, FaMapMarkerAlt, FaClock, FaCalendarAlt, FaDollarSign } from "react-icons/fa";
+import { motion } from "framer-motion";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const Dashboard = () => {
-  const { user } = useContext(AuthContext);
+  const [darkMode, setDarkMode] = useState(false);
 
-  const [completedProjects, setCompletedProjects] = useState([]);
-  const [moneyMade, setMoneyMade] = useState(0);
-  const [moneyOwed, setMoneyOwed] = useState(0);
+  const toggleDarkMode = () => setDarkMode(!darkMode);
 
-  useEffect(() => {
-    // Simulating fetching completed projects data
-    const fetchCompletedProjects = async () => {
-      // Mock data simulating your projects with currency and timezone
-      const projects = [
-        {
-          id: 1,
-          name: "Capstone Project",
-          status: "Completed",
-          dueDate: "2023-12-31",
-          location: "Toronto, Canada",
-          currency: "CAD",
-          timezone: "EST",
-        },
-        {
-          id: 2,
-          name: "Freelance Website",
-          status: "Completed",
-          dueDate: "2023-11-15",
-          location: "New York, USA",
-          currency: "USD",
-          timezone: "EST",
-        },
-      ];
+  // Mock data for earnings and tasks
+  const earningsData = [
+    { month: "Jan", earnings: 1200 },
+    { month: "Feb", earnings: 1700 },
+    { month: "Mar", earnings: 900 },
+    { month: "Apr", earnings: 2200 },
+  ];
 
-      setCompletedProjects(projects);
-    };
+  const pieData = [
+    { name: "Completed Tasks", value: 65 },
+    { name: "Pending Tasks", value: 35 },
+  ];
 
-    // Simulating fetching invoices (money made and money owed)
-    const fetchInvoices = async () => {
-      // Mock data for invoices
-      const invoices = [
-        { amount: 500, status: "Paid" },
-        { amount: 300, status: "Pending" },
-      ];
+  const COLORS = ["#4CAF50", "#F44336"];
 
-      let moneyMadeTotal = 0;
-      let moneyOwedTotal = 0;
-      invoices.forEach((invoice) => {
-        if (invoice.status === "Paid") {
-          moneyMadeTotal += invoice.amount;
-        } else if (invoice.status === "Pending") {
-          moneyOwedTotal += invoice.amount;
-        }
-      });
-      setMoneyMade(moneyMadeTotal);
-      setMoneyOwed(moneyOwedTotal);
-    };
+  // Mock data for completed projects
+  const completedProjects = [
+    {
+      id: 1,
+      name: "Capstone Project",
+      status: "Completed",
+      dueDate: "2023-12-31",
+      location: "Toronto, Canada",
+      currency: "CAD",
+      timezone: "EST",
+    },
+    {
+      id: 2,
+      name: "Freelance Website",
+      status: "Completed",
+      dueDate: "2023-11-15",
+      location: "New York, USA",
+      currency: "USD",
+      timezone: "EST",
+    },
+  ];
 
-    fetchCompletedProjects();
-    fetchInvoices();
-  }, [user.id]);
+  // Custom Tooltip for the Bar Chart
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className={`p-3 rounded-lg shadow-md ${darkMode ? "bg-gray-700 text-white" : "bg-white text-gray-900"}`}>
+          <p className="font-semibold">{label}</p>
+          <p>Earnings: ${payload[0].value}</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
-    <div className="container mt-5">
-      <h2 className="text-center mb-4">Welcome Back, {user?.name}! 👋</h2>
-
-      {/* Dashboard Overview */}
-      <div className="text-center mb-4">
-        <p><strong>Money Made: </strong>${moneyMade}</p>
-        <p><strong>Money Owed: </strong>${moneyOwed}</p>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="d-flex justify-content-center gap-3 mb-4">
-        <button className="btn btn-primary d-flex align-items-center gap-2">
-          <FaPlus /> Add Task
-        </button>
-        <button className="btn btn-secondary d-flex align-items-center gap-2">
-          <FaMapMarkerAlt /> Find Workspace
+    <div className={`${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"} min-h-screen p-6`}>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <button onClick={toggleDarkMode} className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600">
+          {darkMode ? <FaSun /> : <FaMoon />}
         </button>
       </div>
 
-      <div className="row row-cols-1 row-cols-md-2 g-4">
-        {/* Completed Projects Section */}
-        <div className="col">
-          <div className="card h-100 p-3 shadow rounded">
-            <h3 className="text-center d-flex align-items-center gap-2">
-              <FaTasks /> Completed Projects
-            </h3>
-            <ul className="list-unstyled">
-              {completedProjects.map((project) => (
-                <li key={project.id} className="border p-3 rounded mb-2 bg-light">
-                  <h5>{project.name}</h5>
-                  <p>Status: <span className={project.status === "Completed" ? "text-success" : "text-warning"}>{project.status}</span></p>
-                  <p>Due Date: {project.dueDate}</p>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}
+        >
+          <FaTasks className="text-3xl mb-2 text-blue-500" />
+          <h2 className="text-lg font-semibold">Total Tasks</h2>
+          <p className="text-xl font-bold">34</p>
+        </motion.div>
 
-                  {/* Display Timezone and Currency Conversion */}
-                  <div className="d-flex justify-content-between">
-                    <div>
-                      <p><strong>Timezone: </strong>{project.timezone}</p>
-                      <p><strong>Currency: </strong>{project.currency}</p>
-                    </div>
-                    <div className="text-center">
-                      <Link to={`/project-details/${project.id}`} className="btn btn-primary">View Details</Link>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}
+        >
+          <FaMoneyBillWave className="text-3xl mb-2 text-green-500" />
+          <h2 className="text-lg font-semibold">Earnings</h2>
+          <p className="text-xl font-bold">$5,200</p>
+        </motion.div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        {/* Earnings Bar Chart */}
+        <div className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}>
+          <h2 className="text-lg font-semibold mb-4">Earnings Overview</h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={earningsData}>
+              <XAxis dataKey="month" stroke={darkMode ? "#ffffff" : "#000000"} />
+              <YAxis stroke={darkMode ? "#ffffff" : "#000000"} />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="earnings" fill="#3b82f6" radius={[5, 5, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Task Pie Chart */}
+        <div className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}>
+          <h2 className="text-lg font-semibold mb-4">Task Completion</h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie data={pieData} dataKey="value" outerRadius={80} label>
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Completed Projects Section */}
+      <div className="mt-6">
+        <div className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}>
+          <h2 className="text-lg font-semibold mb-4">Completed Projects</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {completedProjects.map((project) => (
+              <motion.div
+                key={project.id}
+                whileHover={{ scale: 1.02 }}
+                className={`p-6 border rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-50"} transition-all duration-300`}
+              >
+                <h3 className="text-xl font-semibold mb-2">{project.name}</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <FaCalendarAlt className={`${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+                  <p className={`${darkMode ? "text-gray-300" : "text-gray-600"}`}>Due Date: {project.dueDate}</p>
+                </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <FaMapMarkerAlt className={`${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+                  <p className={`${darkMode ? "text-gray-300" : "text-gray-600"}`}>{project.location}</p>
+                </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <FaClock className={`${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+                  <p className={`${darkMode ? "text-gray-300" : "text-gray-600"}`}>{project.timezone}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FaDollarSign className={`${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+                  <p className={`${darkMode ? "text-gray-300" : "text-gray-600"}`}>{project.currency}</p>
+                </div>
+                <div className="mt-4">
+                  <span
+                    className={`px-2 py-1 rounded-full text-sm font-semibold ${
+                      project.status === "Completed" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {project.status}
+                  </span>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
