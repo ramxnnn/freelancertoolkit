@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 const axios = require("axios");
 const cors = require('cors');
 const path = require("path");
+const jwt = require('jsonwebtoken'); // Add JWT for token validation
 const currency = require("./modules/api/currency");
 const places = require("./modules/api/places");
 const Invoice = require("./models/Invoice");
@@ -14,14 +15,13 @@ const mongoURI = process.env.MONGODB_URI;
 const authRoutes = require("./routes/authRoutes");
 const Task = require('./models/Task'); // Import the Task model
 const User = require('./models/User'); // Import the User model
-const Project = require('./models/Project'); // Import Project model
+const Project = require('./models/Projects'); // Import Project model
 const Workspace = require('./models/Workspace'); // Import the Workspace model
 const CurrencyConversion = require('./models/CurrencyConversion'); // Import the CurrencyConversion model
 
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 8888;
-
 
 // Setup Pug as the view engine
 app.set("views", path.join(__dirname, "views"));
@@ -30,8 +30,8 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Setup MongoDB
 mongoose.connect(mongoURI)
-.then(() => console.log('Connected to MongoDB Atlas'))
-.catch((err) => console.error('Error connecting to MongoDB Atlas:', err));
+  .then(() => console.log('Connected to MongoDB Atlas'))
+  .catch((err) => console.error('Error connecting to MongoDB Atlas:', err));
 
 // Enable CORS middleware for multiple frontend origins
 app.use(cors({
@@ -41,6 +41,7 @@ app.use(cors({
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // Allow credentials (cookies, tokens)
 }));
 
 // Middleware
@@ -49,6 +50,18 @@ app.use(express.json());
 
 // Auth Routes
 app.use(authRoutes);
+
+// Token Validation Middleware
+const authenticateToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // Get the token from the header
+  if (!token) return res.sendStatus(401); // Unauthorized
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403); // Forbidden
+    req.user = user; // Attach the user to the request object
+    next(); // Proceed to the next middleware/route
+  });
+};
 
 // Routes
 app.get("/", (req, res) => {
@@ -118,10 +131,10 @@ app.get("/api/timezones", async (req, res) => {
 });
 
 // Task Manager Routes
-app.post('/tasks', async (req, res) => {
+app.post('/tasks', authenticateToken, async (req, res) => {
   try {
-    const { userId, title, description, dueDate, status, priority, category, reminder } = req.body;
-    const task = new Task({ userId, title, description, dueDate, status, priority, category, reminder });
+    const { title, description, dueDate, status, priority, category, reminder } = req.body;
+    const task = new Task({ userId: req.user._id, title, description, dueDate, status, priority, category, reminder });
     await task.save();
     res.status(201).json(task);
   } catch (err) {
@@ -129,27 +142,27 @@ app.post('/tasks', async (req, res) => {
   }
 });
 
-app.get('/tasks/:userId', async (req, res) => {
+app.get('/tasks', authenticateToken, async (req, res) => {
   try {
-    const tasks = await Task.find({ userId: req.params.userId });
+    const tasks = await Task.find({ userId: req.user._id });
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.put('/tasks/:id', async (req, res) => {
+app.put('/tasks/:id', authenticateToken, async (req, res) => {
   try {
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const task = await Task.findOneAndUpdate({ _id: req.params.id, userId: req.user._id }, req.body, { new: true });
     res.json(task);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-app.delete('/tasks/:id', async (req, res) => {
+app.delete('/tasks/:id', authenticateToken, async (req, res) => {
   try {
-    await Task.findByIdAndDelete(req.params.id);
+    await Task.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
     res.json({ message: 'Task deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -205,10 +218,10 @@ app.delete('/users/:id', async (req, res) => {
 });
 
 // Workspace Management Routes
-app.post('/workspaces', async (req, res) => {
+app.post('/workspaces', authenticateToken, async (req, res) => {
   try {
-    const { userId, placeId, name, address, latitude, longitude, rating } = req.body;
-    const workspace = new Workspace({ userId, placeId, name, address, latitude, longitude, rating });
+    const { placeId, name, address, latitude, longitude, rating } = req.body;
+    const workspace = new Workspace({ userId: req.user._id, placeId, name, address, latitude, longitude, rating });
     await workspace.save();
     res.status(201).json(workspace);
   } catch (err) {
@@ -216,18 +229,18 @@ app.post('/workspaces', async (req, res) => {
   }
 });
 
-app.get('/workspaces/:userId', async (req, res) => {
+app.get('/workspaces', authenticateToken, async (req, res) => {
   try {
-    const workspaces = await Workspace.find({ userId: req.params.userId });
+    const workspaces = await Workspace.find({ userId: req.user._id });
     res.json(workspaces);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.delete('/workspaces/:id', async (req, res) => {
+app.delete('/workspaces/:id', authenticateToken, async (req, res) => {
   try {
-    await Workspace.findByIdAndDelete(req.params.id);
+    await Workspace.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
     res.json({ message: 'Workspace deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -235,10 +248,10 @@ app.delete('/workspaces/:id', async (req, res) => {
 });
 
 // Currency Conversion History Routes
-app.post('/currency-conversions', async (req, res) => {
+app.post('/currency-conversions', authenticateToken, async (req, res) => {
   try {
-    const { userId, fromCurrency, toCurrency, amount, convertedAmount, rate } = req.body;
-    const currencyConversion = new CurrencyConversion({ userId, fromCurrency, toCurrency, amount, convertedAmount, rate });
+    const { fromCurrency, toCurrency, amount, convertedAmount, rate } = req.body;
+    const currencyConversion = new CurrencyConversion({ userId: req.user._id, fromCurrency, toCurrency, amount, convertedAmount, rate });
     await currencyConversion.save();
     res.status(201).json(currencyConversion);
   } catch (err) {
@@ -246,9 +259,9 @@ app.post('/currency-conversions', async (req, res) => {
   }
 });
 
-app.get('/currency-conversions/:userId', async (req, res) => {
+app.get('/currency-conversions', authenticateToken, async (req, res) => {
   try {
-    const currencyConversions = await CurrencyConversion.find({ userId: req.params.userId });
+    const currencyConversions = await CurrencyConversion.find({ userId: req.user._id });
     res.json(currencyConversions);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -256,10 +269,10 @@ app.get('/currency-conversions/:userId', async (req, res) => {
 });
 
 // Create Invoice
-app.post('/invoices', async (req, res) => {
+app.post('/invoices', authenticateToken, async (req, res) => {
   try {
-    const { userId, clientName, services, amount, dueDate, status } = req.body;
-    const invoice = new Invoice({ userId, clientName, services, amount, dueDate, status });
+    const { clientName, services, amount, dueDate, status } = req.body;
+    const invoice = new Invoice({ userId: req.user._id, clientName, services, amount, dueDate, status });
     await invoice.save();
     res.status(201).json(invoice);
   } catch (err) {
@@ -268,75 +281,18 @@ app.post('/invoices', async (req, res) => {
 });
 
 // Get Invoices for a User
-app.get('/invoices/:userId', async (req, res) => {
+app.get('/invoices', authenticateToken, async (req, res) => {
   try {
-    const invoices = await Invoice.find({ userId: req.params.userId });
+    const invoices = await Invoice.find({ userId: req.user._id });
     res.json(invoices);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Create a Project
-app.post('/projects', async (req, res) => {
-  try {
-    const { name, status, dueDate, location, currency } = req.body;
-
-    // Fetch timezone and currency conversion
-    const placesUrl = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(location)}&inputtype=textquery&fields=geometry&key=${process.env.PLACES_API_KEY}`;
-    const placesResponse = await axios.get(placesUrl);
-
-    if (!placesResponse.data.candidates || placesResponse.data.candidates.length === 0) {
-      return res.status(400).json({ message: `No results found for "${location}".` });
-    }
-
-    const { lat, lng } = placesResponse.data.candidates[0].geometry.location;
-    const timestamp = Math.floor(Date.now() / 1000);
-    const tz = await timezone.getTimezone(lat, lng, timestamp);
-
-    const convertedRate = await currency.getExchangeRates('USD', currency, 1); // Convert USD to the given currency
-
-    if (!tz.timeZoneId || !convertedRate) {
-      return res.status(400).json({ message: 'Failed to fetch timezone or currency data' });
-    }
-
-    const project = new Project({
-      name,
-      status,
-      dueDate,
-      location,
-      currency,
-      timezone: tz.timeZoneId,
-    });
-
-    await project.save();
-    res.status(201).json(project);
-  } catch (error) {
-    res.status(500).json({ message: 'Error creating project', error });
-  }
-});
-
-// Get All Projects
-app.get('/projects', async (req, res) => {
-  try {
-    const projects = await Project.find();
-    res.json(projects);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching projects', error });
-  }
-});
-
-// Delete a Project
-app.delete('/projects/:id', async (req, res) => {
-  try {
-    const project = await Project.findByIdAndDelete(req.params.id);
-    if (!project) return res.status(404).json({ message: 'Project not found' });
-    res.status(200).json({ message: 'Project deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error deleting project', error });
-  }
-});
-
+// Import and use the projects routes
+const projectsRoutes = require('./routes/projects');
+app.use(projectsRoutes);
 
 // Start Server
 app.listen(port, () => {

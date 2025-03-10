@@ -9,6 +9,8 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import TaskManager from './components/TaskManager';
+import Projects from './components/Projects'; // Corrected import (ensure the file name matches)
+import Invoices from './components/Invoices'; // Add this import
 import './styles/styles.css';
 
 // Reusable Components
@@ -51,6 +53,22 @@ const App = () => {
             element={
               <PrivateRoute>
                 <TaskManager />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/projects"
+            element={
+              <PrivateRoute>
+                <Projects />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/invoices"
+            element={
+              <PrivateRoute>
+                <Invoices />
               </PrivateRoute>
             }
           />

@@ -1,12 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaTasks, FaMoneyBillWave, FaMoon, FaSun, FaMapMarkerAlt, FaClock, FaCalendarAlt, FaDollarSign } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(false);
+  const [projects, setProjects] = useState([]); // State for storing fetched projects
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
+
+  // Fetch projects on component mount
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch("/api/projects"); // Replace with your API endpoint
+        if (!response.ok) {
+          throw new Error("Failed to fetch projects");
+        }
+        const data = await response.json();
+        setProjects(data); // Update state with fetched projects
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      }
+    };
+
+    fetchProjects();
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   // Mock data for earnings and tasks
   const earningsData = [
@@ -22,28 +41,6 @@ const Dashboard = () => {
   ];
 
   const COLORS = ["#4CAF50", "#F44336"];
-
-  // Mock data for completed projects
-  const completedProjects = [
-    {
-      id: 1,
-      name: "Capstone Project",
-      status: "Completed",
-      dueDate: "2023-12-31",
-      location: "Toronto, Canada",
-      currency: "CAD",
-      timezone: "EST",
-    },
-    {
-      id: 2,
-      name: "Freelance Website",
-      status: "Completed",
-      dueDate: "2023-11-15",
-      location: "New York, USA",
-      currency: "USD",
-      timezone: "EST",
-    },
-  ];
 
   // Custom Tooltip for the Bar Chart
   const CustomTooltip = ({ active, payload, label }) => {
@@ -124,7 +121,7 @@ const Dashboard = () => {
         <div className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}>
           <h2 className="text-lg font-semibold mb-4">Completed Projects</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {completedProjects.map((project) => (
+            {projects.map((project) => (
               <motion.div
                 key={project.id}
                 whileHover={{ scale: 1.02 }}

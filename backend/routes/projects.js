@@ -1,11 +1,24 @@
 const express = require('express');
 const axios = require('axios');
-const Project = require('../models/Project');
+const Project = require('../models/Projects');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const EXCHANGE_API_KEY = process.env.EXCHANGE_API_KEY;
 const PLACES_API_KEY = process.env.PLACES_API_KEY;
+
+// Token Validation Middleware
+const authenticateToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) return res.sendStatus(401); // Unauthorized
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403); // Forbidden
+    req.user = user; // Attach the user to the request object
+    next(); // Proceed to the next middleware/route
+  });
+};
 
 // Fetch Timezone based on location
 const getTimezone = async (location) => {
@@ -31,8 +44,8 @@ const getCurrencyConversion = async (currency) => {
   }
 };
 
-// Create a Project
-router.post('/projects', async (req, res) => {
+// Create a Project (Protected Route)
+router.post('/projects', authenticateToken, async (req, res) => {
   const { name, status, dueDate, location, currency } = req.body;
   try {
     const timezone = await getTimezone(location);
@@ -41,7 +54,7 @@ router.post('/projects', async (req, res) => {
     const conversionRate = await getCurrencyConversion(currency);
     if (!conversionRate) return res.status(400).json({ message: 'Failed to get currency conversion rate' });
 
-    const newProject = new Project({ name, status, dueDate, location, currency, timezone });
+    const newProject = new Project({ name, status, dueDate, location, currency, timezone, userId: req.user._id });
     await newProject.save();
     res.status(201).json(newProject);
   } catch (error) {
@@ -49,20 +62,20 @@ router.post('/projects', async (req, res) => {
   }
 });
 
-// Get All Projects
-router.get('/projects', async (req, res) => {
+// Get All Projects for the Logged-in User (Protected Route)
+router.get('/projects', authenticateToken, async (req, res) => {
   try {
-    const projects = await Project.find();
+    const projects = await Project.find({ userId: req.user._id }); // Fetch projects for the logged-in user
     res.json(projects);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching projects', error });
   }
 });
 
-// Delete a Project
-router.delete('/projects/:id', async (req, res) => {
+// Delete a Project (Protected Route)
+router.delete('/projects/:id', authenticateToken, async (req, res) => {
   try {
-    const project = await Project.findByIdAndDelete(req.params.id);
+    const project = await Project.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
     if (!project) return res.status(404).json({ message: 'Project not found' });
     res.status(200).json({ message: 'Project deleted' });
   } catch (error) {
