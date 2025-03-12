@@ -292,7 +292,7 @@ app.get('/invoices', authenticateToken, async (req, res) => {
 
 // Import and use the projects routes
 const projectsRoutes = require('./routes/projects');
-app.use(projectsRoutes);
+app.use('/api', projectsRoutes); 
 
 // Start Server
 app.listen(port, () => {
