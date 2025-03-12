@@ -63,3 +63,23 @@ export const getTimezone = async (lat, lng, timestamp) => {
     throw new Error('Unable to fetch timezone data. Please try again later.');
   }
 };
+
+// Fetch earnings for a project
+export const getProjectEarnings = async (projectId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found. Please log in again.');
+    }
+
+    const response = await axios.get(`${API_URL}/projects/${projectId}/earnings`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data; // Returns { projectId, totalEarnings, paidInvoicesCount }
+  } catch (error) {
+    console.error('Error fetching project earnings:', error);
+    throw new Error('Failed to fetch project earnings. Please try again.');
+  }
+};

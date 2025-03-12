@@ -18,10 +18,6 @@ const Projects = () => {
   // Use the environment variable for the API base URL
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8888';
 
-  // Google Places API key
-  const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
-  const GOOGLE_PLACES_API_URL = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json`;
-
   // Google Timezone API key
   const GOOGLE_TIMEZONE_API_KEY = import.meta.env.VITE_GOOGLE_TIMEZONE_API_KEY;
   const GOOGLE_TIMEZONE_API_URL = `https://maps.googleapis.com/maps/api/timezone/json`;
@@ -47,30 +43,27 @@ const Projects = () => {
       });
       setProjects(response.data);
     } catch (error) {
-      console.error("Error fetching projects:", error);
+      console.error('Error fetching projects:', error);
       setError('Failed to fetch projects. Please try again.');
     }
   };
 
   const getLatLongFromCity = async (cityName) => {
     try {
-      const response = await axios.get(GOOGLE_PLACES_API_URL, {
-        params: {
-          input: cityName,
-          inputtype: 'textquery',
-          fields: 'geometry',
-          key: GOOGLE_PLACES_API_KEY,
-        },
-      });
-
-      if (response.data.candidates.length === 0) {
-        throw new Error('No results found for the city.');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found. Please log in again.');
       }
 
-      const { lat, lng } = response.data.candidates[0].geometry.location;
-      return { lat, lng }; // Return latitude and longitude
+      const response = await axios.get(`${API_BASE_URL}/location`, {
+        params: { city: cityName },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data; // { lat, lng }
     } catch (error) {
-      console.error("Error fetching location:", error);
+      console.error('Error fetching location:', error);
       throw new Error('Failed to fetch location.');
     }
   };
@@ -92,7 +85,7 @@ const Projects = () => {
 
       return response.data.timeZoneId; // Return the timezone ID (e.g., "America/New_York")
     } catch (error) {
-      console.error("Error fetching timezone:", error);
+      console.error('Error fetching timezone:', error);
       throw new Error('Failed to fetch timezone.');
     }
   };
@@ -138,7 +131,7 @@ const Projects = () => {
       setCurrency('');
       setError('');
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error('Error creating project:', error);
       setError(error.message || 'Failed to create project. Please try again.');
     }
   };
@@ -159,7 +152,7 @@ const Projects = () => {
       setProjects(projects.filter((project) => project._id !== projectId));
       setError('');
     } catch (error) {
-      console.error("Error deleting project:", error);
+      console.error('Error deleting project:', error);
       setError('Failed to delete project. Please try again.');
     }
   };
@@ -240,6 +233,14 @@ const Projects = () => {
               className="mt-2"
             >
               Delete Project
+            </Button>
+            {/* Add this button to view earnings */}
+            <Button
+              variant="primary"
+              onClick={() => window.location.href = `/dashboard`} // Redirect to dashboard
+              className="mt-2"
+            >
+              View Earnings
             </Button>
           </li>
         ))}
