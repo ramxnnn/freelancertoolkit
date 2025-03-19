@@ -13,7 +13,7 @@ const AuthProvider = ({ children }) => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const response = await axios.get('https://freelancer-toolkit.onrender.com/protected', {
+          const response = await axios.get('https://freelancertoolkit.vercel.app//protected', {
             headers: { Authorization: `Bearer ${token}` },
           });
           setUser(response.data.user); // Set user if token is valid
@@ -35,7 +35,7 @@ const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('https://freelancer-toolkit.onrender.com/login', { email, password });
+      const response = await axios.post('https://freelancertoolkit.vercel.app//login', { email, password });
       localStorage.setItem('token', response.data.token); // Save token to localStorage
       setUser(response.data.user); // Set the user in the state
     } catch (error) {
@@ -46,7 +46,7 @@ const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password) => {
     try {
-      const response = await axios.post('https://freelancer-toolkit.onrender.com/register', { name, email, password });
+      const response = await axios.post('https://freelancertoolkit.vercel.app//register', { name, email, password });
       localStorage.setItem('token', response.data.token); // Save token to localStorage
       setUser(response.data.user); // Set the user in the state
     } catch (error) {

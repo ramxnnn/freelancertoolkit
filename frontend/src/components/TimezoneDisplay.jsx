@@ -13,7 +13,7 @@ const TimezoneDisplay = () => {
     setError('');
     try {
       // Make a request to backend with the city name
-      const response = await axios.get(`https://freelancer-toolkit.onrender.com/api/timezones?location=${encodeURIComponent(city)}`);
+      const response = await axios.get(`https://freelancertoolkit.vercel.app//api/timezones?location=${encodeURIComponent(city)}`);
       
       // If the response contains timezone data
       if (response.data.timeZoneId && response.data.timeZoneName) {

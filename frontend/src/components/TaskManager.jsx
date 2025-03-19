@@ -28,7 +28,7 @@ const TaskManager = () => {
       }
 
       // Fetch tasks for the logged-in user
-      const response = await axios.get('https://freelancer-toolkit.onrender.com/tasks', {
+      const response = await axios.get('https://freelancertoolkit.vercel.app//tasks', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -53,7 +53,7 @@ const TaskManager = () => {
       }
 
       const response = await axios.post(
-        'https://freelancer-toolkit.onrender.com/tasks',
+        'https://freelancertoolkit.vercel.app//tasks',
         {
           userId: user._id,
           title,
