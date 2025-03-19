@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import Card from './Card'; // Reusable Card component
-import Button from './Button'; // Reusable Button component
-import Input from './Input'; // Reusable Input component
+import Card from './Card';
+import Button from './Button';
+import Input from './Input';
 
 const TaskManager = () => {
   const [tasks, setTasks] = useState([]);
@@ -21,28 +21,60 @@ const TaskManager = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get(`https://freelancer-toolkit.onrender.com/tasks/${user._id}`);
-      setTasks(response.data);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No token found. Please log in again.');
+        return;
+      }
+
+      // Fetch tasks for the logged-in user
+      const response = await axios.get('https://freelancer-toolkit.onrender.com/tasks', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Filter tasks for the current user (if backend doesn't filter by userId)
+      const userTasks = response.data.filter(task => task.userId === user._id);
+      setTasks(userTasks);
     } catch (error) {
       setError('Failed to fetch tasks.');
+      console.error('Fetch tasks error:', error);
     }
   };
 
   const handleAddTask = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('https://freelancer-toolkit.onrender.com/tasks', {
-        userId: user._id,
-        title,
-        description,
-        dueDate,
-      });
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No token found. Please log in again.');
+        return;
+      }
+
+      const response = await axios.post(
+        'https://freelancer-toolkit.onrender.com/tasks',
+        {
+          userId: user._id,
+          title,
+          description,
+          dueDate,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       setTasks([...tasks, response.data]);
       setTitle('');
       setDescription('');
       setDueDate('');
+      setError('');
     } catch (error) {
       setError('Failed to add task.');
+      console.error('Add task error:', error);
     }
   };
 
@@ -63,6 +95,7 @@ const TaskManager = () => {
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter task title"
               required
             />
           </div>
@@ -72,6 +105,7 @@ const TaskManager = () => {
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter task description"
               className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -82,6 +116,7 @@ const TaskManager = () => {
               id="dueDate"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
+              required
             />
           </div>
           <Button type="submit" className="w-full">Add Task</Button>

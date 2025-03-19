@@ -53,60 +53,79 @@ const Invoices = () => {
       const element = document.createElement('div');
       element.innerHTML = `
         <style>
+          /* PDF-specific styles */
           body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-          }
-          h1 {
-            color: #2c3e50;
-            text-align: center;
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #000000 !important;
           }
           .company-name {
             font-size: 24px;
             font-weight: bold;
             text-align: center;
             margin-bottom: 20px;
-            color: #3b82f6;
+            color: #000000 !important;
+          }
+          h1 {
+            color: #2c3e50 !important;
+            text-align: center;
+            margin-bottom: 30px;
           }
           .invoice-details {
-            margin-top: 20px;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa !important;
+            border-radius: 5px;
           }
           .invoice-details p {
-            margin: 5px 0;
-          }
-          .invoice-details strong {
-            display: inline-block;
-            width: 120px;
-            font-weight: bold;
+            margin: 8px 0;
+            font-size: 14px;
           }
           table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin: 20px 0;
           }
           th, td {
-            border: 1px solid #000;
-            padding: 8px;
+            border: 1px solid #dee2e6 !important;
+            padding: 12px;
             text-align: left;
+            color: #000000 !important;
           }
           th {
-            background-color: #f2f2f2;
+            background-color: #e9ecef !important;
+            font-weight: bold;
           }
           .footer {
             margin-top: 40px;
             text-align: center;
             font-size: 12px;
-            color: #666;
+            color: #6c757d !important;
+          }
+          .total-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa !important;
+            border-radius: 5px;
+          }
+          .total-section p {
+            margin: 8px 0;
+            font-size: 16px;
+            font-weight: bold;
           }
         </style>
+
         <div class="company-name">Freelancer Toolkit</div>
         <h1>Invoice</h1>
+        
         <div class="invoice-details">
-          <p><strong>Invoice Number:</strong> ${invoice.invoiceNumber || 'N/A'}</p>
+          <p><strong>Invoice Number:</strong> ${invoice._id}</p>
           <p><strong>Client:</strong> ${invoice.clientName}</p>
           <p><strong>Due Date:</strong> ${new Date(invoice.dueDate).toLocaleDateString()}</p>
           <p><strong>Status:</strong> ${invoice.status}</p>
         </div>
+
         <table>
           <thead>
             <tr>
@@ -117,40 +136,55 @@ const Invoices = () => {
             </tr>
           </thead>
           <tbody>
-            ${invoice.services.map(
-              (service) => `
+            ${invoice.services.map((service) => `
               <tr>
                 <td>${service.name}</td>
                 <td>${service.quantity}</td>
-                <td>$${service.price}</td>
-                <td>$${service.quantity * service.price}</td>
+                <td>$${service.price.toFixed(2)}</td>
+                <td>$${(service.quantity * service.price).toFixed(2)}</td>
               </tr>
-            `
-            ).join('')}
+            `).join('')}
           </tbody>
         </table>
-        <div class="invoice-details">
-          <p><strong>Subtotal:</strong> $${invoice.subtotal || 0}</p>
-          <p><strong>Tax (10%):</strong> $${(invoice.subtotal || 0) * 0.1}</p>
-          <p><strong>Total:</strong> $${(invoice.subtotal || 0) * 1.1}</p>
+
+        <div class="total-section">
+          <p>Subtotal: $${invoice.amount.toFixed(2)}</p>
+          <p>Tax (10%): $${(invoice.amount * 0.1).toFixed(2)}</p>
+          <p>Total: $${(invoice.amount * 1.1).toFixed(2)}</p>
         </div>
+
         <div class="footer">
           <p>Thank you for your business!</p>
           <p>Contact us at support@freelancertoolkit.com</p>
         </div>
       `;
 
-      // Options for PDF generation
+      // PDF configuration
       const options = {
-        margin: 10,
-        filename: `Invoice_${invoice.clientName}.pdf`, // Custom file name
+        margin: [10, 10],
+        filename: `Invoice_${invoice.clientName}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          logging: true,
+          letterRendering: true
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait',
+          compress: true
+        }
       };
 
-      // Generate and save the PDF
-      html2pdf().set(options).from(element).save();
+      // Generate PDF after short delay to ensure rendering
+      setTimeout(() => {
+        html2pdf()
+          .set(options)
+          .from(element)
+          .save();
+      }, 100);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
@@ -170,10 +204,16 @@ const Invoices = () => {
         {invoices.map((invoice) => (
           <li key={invoice._id} className="border p-4 rounded-lg bg-gray-50">
             <h5 className="text-xl font-bold">{invoice.clientName}</h5>
-            <p className="text-gray-700">Services: {invoice.services}</p>
-            <p className="text-gray-700">Amount: ${invoice.amount}</p>
+            <div className="space-y-2">
+              {invoice.services.map((service, index) => (
+                <div key={index} className="text-gray-700">
+                  {service.name} (Qty: {service.quantity}, Price: ${service.price})
+                </div>
+              ))}
+            </div>
+            <p className="text-gray-700">Total: ${invoice.amount}</p>
             <p className="text-gray-700">Due Date: {new Date(invoice.dueDate).toLocaleDateString()}</p>
-            <p className="text-gray-700">Status: ${invoice.status}</p>
+            <p className="text-gray-700">Status: {invoice.status}</p>
             <Button onClick={() => handleDownloadInvoice(invoice)} className="mt-2">
               Download Invoice
             </Button>

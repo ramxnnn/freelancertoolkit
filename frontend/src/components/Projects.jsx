@@ -36,7 +36,8 @@ const Projects = () => {
         return;
       }
 
-      const response = await axios.get(`${API_BASE_URL}/projects`, {
+      // Fetch projects with /api prefix
+      const response = await axios.get(`${API_BASE_URL}/api/projects`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -55,7 +56,8 @@ const Projects = () => {
         throw new Error('No token found. Please log in again.');
       }
 
-      const response = await axios.get(`${API_BASE_URL}/location`, {
+      // Fetch location with /api prefix
+      const response = await axios.get(`${API_BASE_URL}/api/location`, {
         params: { city: cityName },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -107,7 +109,7 @@ const Projects = () => {
 
       // Step 3: Create the project with the fetched timezone
       const response = await axios.post(
-        `${API_BASE_URL}/projects`,
+        `${API_BASE_URL}/api/projects`, // Add /api prefix
         {
           name,
           status,
@@ -144,7 +146,8 @@ const Projects = () => {
         return;
       }
 
-      await axios.delete(`${API_BASE_URL}/projects/${projectId}`, {
+      // Delete project with /api prefix
+      await axios.delete(`${API_BASE_URL}/api/projects/${projectId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -173,6 +176,7 @@ const Projects = () => {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder="Enter project name"
               required
             />
           </div>
@@ -203,6 +207,7 @@ const Projects = () => {
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
+              placeholder="Enter city name"
               required
             />
           </div>
@@ -212,6 +217,7 @@ const Projects = () => {
               type="text"
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
+              placeholder="Enter currency (e.g., USD)"
               required
             />
           </div>
@@ -234,7 +240,6 @@ const Projects = () => {
             >
               Delete Project
             </Button>
-            {/* Add this button to view earnings */}
             <Button
               variant="primary"
               onClick={() => window.location.href = `/dashboard`} // Redirect to dashboard

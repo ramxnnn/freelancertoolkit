@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getWorkspaces } from '../api/api';
-import Card from './Card'; // Reusable Card component
-import Button from './Button'; // Reusable Button component
-import Input from './Input'; // Reusable Input component
+import Button from './Button';
+import Input from './Input';
 
 const WorkspaceFinder = () => {
   const [location, setLocation] = useState('');
@@ -19,9 +18,13 @@ const WorkspaceFinder = () => {
     setError('');
     setIsLoading(true);
     try {
-      const results = await getWorkspaces(location);
-      setWorkspaces(results.results);
-      setNextPageToken(results.next_page_token);
+      // API directly returns the array of workspaces
+      const workspacesData = await getWorkspaces(location);
+      console.log('API Response:', workspacesData);
+      
+      setWorkspaces(workspacesData || []);
+      // If you need next_page_token, ensure your API returns it separately
+      // setNextPageToken(workspacesData.next_page_token || null);
     } catch (error) {
       setError('Failed to fetch workspaces.');
     } finally {
@@ -33,9 +36,9 @@ const WorkspaceFinder = () => {
     if (!nextPageToken) return;
     setIsLoading(true);
     try {
-      const results = await getWorkspaces(location, nextPageToken);
-      setWorkspaces((prev) => [...prev, ...results.results]);
-      setNextPageToken(results.next_page_token);
+      const moreWorkspaces = await getWorkspaces(location, nextPageToken);
+      setWorkspaces(prev => [...prev, ...(moreWorkspaces || [])]);
+      // setNextPageToken(moreWorkspaces.next_page_token || null);
     } catch (error) {
       setError('Failed to fetch more workspaces.');
     } finally {
@@ -59,34 +62,50 @@ const WorkspaceFinder = () => {
               {isLoading ? 'Searching...' : 'Search'}
             </Button>
           </div>
+
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
               {error}
             </div>
           )}
-          {workspaces.length === 0 && !isLoading && !error && (
+
+          {!isLoading && !error && workspaces.length === 0 && (
             <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
-              No workspaces found for this location.
+              No workspaces found
             </div>
           )}
+
           <ul className="space-y-4">
             {workspaces.map((workspace) => (
-              <li key={workspace.place_id} className="border p-4 rounded-lg bg-gray-50">
-                <h5 className="text-xl font-bold">{workspace.name}</h5>
-                <p className="text-gray-700">{workspace.vicinity}</p>
+              <li 
+                key={workspace.place_id} 
+                className="border p-4 rounded-lg bg-white shadow-md"
+              >
+                <h3 className="text-xl font-bold mb-2">
+                  {workspace.name || 'Unnamed Workspace'}
+                </h3>
+                <p className="text-gray-600 mb-2">
+                  {workspace.formatted_address || 'Address unavailable'}
+                </p>
+                
                 {workspace.rating && (
-                  <p className="text-gray-700"><strong>Rating:</strong> {workspace.rating}</p>
+                  <div className="flex items-center mb-2">
+                    <span className="text-yellow-500">★</span>
+                    <span className="ml-1">{workspace.rating}</span>
+                  </div>
                 )}
-                {workspace.photos && workspace.photos.length > 0 && (
+
+                {workspace.photos?.[0]?.photo_reference && (
                   <img
-                    src={`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${workspace.photos[0].photo_reference}&key=YOUR_GOOGLE_PLACES_API_KEY`}
+                    src={`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${workspace.photos[0].photo_reference}&key=YOUR_API_KEY`}
                     alt={workspace.name}
-                    className="w-full h-auto rounded-lg mt-2"
+                    className="w-full h-48 object-cover rounded-lg"
                   />
                 )}
               </li>
             ))}
           </ul>
+
           {nextPageToken && (
             <Button
               variant="secondary"

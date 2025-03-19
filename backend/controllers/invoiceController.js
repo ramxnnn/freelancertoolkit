@@ -1,10 +1,9 @@
 const Invoice = require("../models/Invoice");
 
-// Get all invoices (with optional filters)
 exports.getInvoices = async (req, res) => {
   try {
     const { projectId, status } = req.query;
-    const filter = { userId: req.user._id }; // Filter by logged-in user
+    const filter = { userId: req.user._id };
     if (projectId) filter.projectId = projectId;
     if (status) filter.status = status;
 
@@ -15,14 +14,37 @@ exports.getInvoices = async (req, res) => {
   }
 };
 
-// Create a new invoice
 exports.createInvoice = async (req, res) => {
   try {
     const { clientName, services, amount, dueDate, status, projectId } = req.body;
-    const newInvoice = new Invoice({ userId: req.user._id, clientName, services, amount, dueDate, status, projectId });
+
+    if (!clientName || !services || !amount || !dueDate || !status) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    if (!Array.isArray(services) || services.length === 0) {
+      return res.status(400).json({ error: "At least one service is required" });
+    }
+
+    const invoiceData = {
+      userId: req.user._id,
+      clientName,
+      services,
+      amount,
+      dueDate,
+      status,
+      projectId: projectId || null
+    };
+
+    const newInvoice = new Invoice(invoiceData);
     await newInvoice.save();
     res.status(201).json(newInvoice);
   } catch (error) {
-    res.status(500).json({ error: "Failed to create invoice" });
+    console.error("Invoice creation error:", error);
+    res.status(400).json({ 
+      error: error.message.startsWith("Invoice validation failed") 
+        ? "Invalid invoice data" 
+        : "Failed to create invoice" 
+    });
   }
 };

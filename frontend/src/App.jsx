@@ -78,7 +78,7 @@ const App = () => {
 
           {/* Other Public Routes */}
           <Route path="/currency" element={<CurrencyConverter />} />
-          <Route path="/workspaces" element={<WorkspaceFinder />} />
+          <Route path="/workspacefinder" element={<WorkspaceFinder />} /> {/* Updated path */}
           <Route path="/timezone" element={<TimezoneDisplay />} />
         </Routes>
       </AuthProvider>
