@@ -32,16 +32,16 @@ mongoose.connect(mongoURI)
   .then(() => console.log('Connected to MongoDB Atlas'))
   .catch((err) => console.error('Error connecting to MongoDB Atlas:', err));
 
-app.use(cors({
-  origin: [
-    'https://freelancer-toolkit-frontend-react.vercel.app',
-    'http://localhost:5173',
-    'https://freelancertoolkit.vercel.app/',
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+  app.use(cors({
+    origin: [
+      'https://freelancertoolkit.vercel.app', 
+      'https://freelancer-toolkit-frontend-react.vercel.app',
+      'http://localhost:5173',
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  }));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
