@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://freelancer-toolkit.onrender.com';
+const API_URL = 'https://freelancerbackend.vercel.app';
 
 // Register a new user
 export const register = async (name, email, password) => {
@@ -56,7 +56,7 @@ export const getWorkspaces = async (location) => {
 // Fetch timezone based on location and timestamp
 export const getTimezone = async (lat, lng, timestamp) => {
   try {
-    const response = await axios.get(`${API_URL}/timezone?lat=${lat}&lng=${lng}&timestamp=${timestamp}`);
+    const response = await axios.get(`${API_URL}/api/timezone?lat=${lat}&lng=${lng}&timestamp=${timestamp}`);
     return response.data; // Returns timezone data
   } catch (error) {
     console.error('Error fetching timezone data:', error.message);
@@ -72,7 +72,7 @@ export const getProjectEarnings = async (projectId) => {
       throw new Error('No token found. Please log in again.');
     }
 
-    const response = await axios.get(`${API_URL}/projects/${projectId}/earnings`, {
+    const response = await axios.get(`${API_URL}/api/projects/${projectId}/earnings`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

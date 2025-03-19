@@ -36,6 +36,7 @@ app.use(cors({
   origin: [
     'https://freelancer-toolkit-frontend-react.vercel.app',
     'http://localhost:5173',
+    'https://freelancertoolkit.vercel.app/',
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
