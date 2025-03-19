@@ -46,6 +46,8 @@ mongoose.connect(mongoURI)
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.options('*', cors());
+
 app.use(authRoutes);
 
 const authenticateToken = (req, res, next) => {
