@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://freelancerbackend.vercel.app';
+const API_URL = 'https://freelancerbackend.vercel.app'; 
 
 // Register a new user
 export const register = async (name, email, password) => {

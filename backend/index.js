@@ -34,8 +34,7 @@ mongoose.connect(mongoURI)
 
   app.use(cors({
     origin: [
-      'https://freelancertoolkit.vercel.app', 
-      'https://freelancer-toolkit-frontend-react.vercel.app',
+      'https://freelancertoolkit.vercel.app',
       'http://localhost:5173',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
