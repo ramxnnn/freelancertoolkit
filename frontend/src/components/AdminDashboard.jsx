@@ -14,7 +14,7 @@ const AdminDashboard = () => {
       try {
         const token = localStorage.getItem('token');
         const [usersRes, tasksRes] = await Promise.all([
-          axios.get('http://localhost:8888/admin/users', {
+          axios.get('https://freelancerbackend.vercel.app/admin/users', {
             headers: { Authorization: `Bearer ${token}` }
           }),
           axios.get('https://freelancerbackend.vercel.app/admin/tasks', {

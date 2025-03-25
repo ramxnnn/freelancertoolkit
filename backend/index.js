@@ -26,104 +26,123 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 8888;
 
+// View engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 app.use(express.static(path.join(__dirname, "public")));
 
+// Database connection
 mongoose.connect(mongoURI)
   .then(() => console.log('Connected to MongoDB Atlas'))
   .catch((err) => console.error('Error connecting to MongoDB Atlas:', err));
 
-  app.use(cors({
-    origin: [
-      'https://freelancertoolkit.vercel.app',
-      'http://localhost:5173',
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-  }));
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+// CORS configuration
+app.use(cors({
+  origin: [
+    'https://freelancertoolkit.vercel.app',
+    'http://localhost:5173',
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 app.options('*', cors());
 
-app.use(authRoutes);
+// Body parsers
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
+// Authentication middleware
 const authenticateToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
-  if (!token) return res.sendStatus(401);
+  if (!token) return res.status(401).json({ error: "Authorization token required" });
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.error('JWT verification error:', err);
+      return res.status(403).json({ error: "Invalid or expired token" });
+    }
+    req.user = decoded;
     next();
   });
 };
 
+// Public routes
+app.use(authRoutes);
+
+// Home route
 app.get("/", (req, res) => {
   res.render("index", { title: "Freelancer Toolkit" });
 });
 
+// Public API routes
 app.get("/currency", async (req, res) => {
-  const { from, to, amount } = req.query;
-
-  if (!from || !to || !amount) {
-    return res.json({
-      convertedAmount: null,
-      error: "Please provide both 'from' and 'to' currencies and an amount."
-    });
+  try {
+    const { from, to, amount } = req.query;
+    if (!from || !to || !amount) {
+      return res.status(400).json({
+        error: "Please provide both 'from' and 'to' currencies and an amount"
+      });
+    }
+    const converted = await currency.getExchangeRates(from, to, parseFloat(amount) || 1);
+    res.json({ convertedAmount: converted });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-
-  const amountValue = parseFloat(amount) || 1;
-
-  const converted = await currency.getExchangeRates(from, to, amountValue);
-  return res.json({
-    convertedAmount: converted,
-  });
 });
 
 app.get("/workspaces", async (req, res) => {
-  const location = req.query.location || "Toronto";
-  const workspaces = await places.findWorkspaces(location);
-  res.json(workspaces);
+  try {
+    const location = req.query.location || "Toronto";
+    const workspaces = await places.findWorkspaces(location);
+    res.json(workspaces);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get("/api/timezones", async (req, res) => {
-  const { location } = req.query;
+  try {
+    const { location } = req.query;
+    if (!location) {
+      return res.status(400).json({
+        error: "Please enter a location to find its timezone."
+      });
+    }
 
-  if (!location) {
-    return res.json({
-      error: "Please enter a location to find its timezone.",
+    const placesUrl = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(location)}&inputtype=textquery&fields=geometry&key=${process.env.PLACES_API_KEY}`;
+    const placesResponse = await axios.get(placesUrl);
+
+    if (!placesResponse.data.candidates || placesResponse.data.candidates.length === 0) {
+      return res.status(404).json({
+        error: `No results found for "${location}".`
+      });
+    }
+
+    const { lat, lng } = placesResponse.data.candidates[0].geometry.location;
+    const timestamp = Math.floor(Date.now() / 1000);
+    const tz = await timezone.getTimezone(lat, lng, timestamp);
+
+    res.json({
+      timeZoneId: tz.timeZoneId,
+      timeZoneName: tz.timeZoneName,
+      dstOffset: tz.dstOffset,
+      rawOffset: tz.rawOffset,
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-
-  const placesUrl = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(location)}&inputtype=textquery&fields=geometry&key=${process.env.PLACES_API_KEY}`;
-  const placesResponse = await axios.get(placesUrl);
-
-  if (!placesResponse.data.candidates || placesResponse.data.candidates.length === 0) {
-    return res.json({
-      error: `No results found for "${location}".`,
-    });
-  }
-
-  const { lat, lng } = placesResponse.data.candidates[0].geometry.location;
-  const timestamp = Math.floor(Date.now() / 1000);
-  const tz = await timezone.getTimezone(lat, lng, timestamp);
-
-  return res.json({
-    timeZoneId: tz.timeZoneId,
-    timeZoneName: tz.timeZoneName,
-    dstOffset: tz.dstOffset,
-    rawOffset: tz.rawOffset,
-  });
 });
 
+// Protected routes
+app.use("/admin", authenticateToken, adminRoutes);
+app.use("/api", authenticateToken, projectsRoutes);
+
+// Task routes
 app.post('/tasks', authenticateToken, async (req, res) => {
   try {
-    const { title, description, dueDate, status, priority, category, reminder } = req.body;
-    const task = new Task({ userId: req.user._id, title, description, dueDate, status, priority, category, reminder });
+    const task = new Task({ userId: req.user.userId, ...req.body });
     await task.save();
     res.status(201).json(task);
   } catch (err) {
@@ -133,7 +152,7 @@ app.post('/tasks', authenticateToken, async (req, res) => {
 
 app.get('/tasks', authenticateToken, async (req, res) => {
   try {
-    const tasks = await Task.find({ userId: req.user._id });
+    const tasks = await Task.find({ userId: req.user.userId });
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -142,7 +161,11 @@ app.get('/tasks', authenticateToken, async (req, res) => {
 
 app.put('/tasks/:id', authenticateToken, async (req, res) => {
   try {
-    const task = await Task.findOneAndUpdate({ _id: req.params.id, userId: req.user._id }, req.body, { new: true });
+    const task = await Task.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.userId },
+      req.body,
+      { new: true }
+    );
     res.json(task);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -151,17 +174,22 @@ app.put('/tasks/:id', authenticateToken, async (req, res) => {
 
 app.delete('/tasks/:id', authenticateToken, async (req, res) => {
   try {
-    await Task.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+    await Task.findOneAndDelete({ _id: req.params.id, userId: req.user.userId });
     res.json({ message: 'Task deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/users', async (req, res) => {
+// User management (admin-only)
+app.post('/users', authenticateToken, async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
-    const user = new User({ name, email, password, role });
+    // Only allow admins to create users
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    
+    const user = new User(req.body);
     await user.save();
     res.status(201).json(user);
   } catch (err) {
@@ -169,46 +197,10 @@ app.post('/users', async (req, res) => {
   }
 });
 
-app.get('/users', async (req, res) => {
-  try {
-    const users = await User.find();
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get('/users/:id', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.put('/users/:id', async (req, res) => {
-  try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(user);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-app.delete('/users/:id', async (req, res) => {
-  try {
-    await User.findByIdAndDelete(req.params.id);
-    res.json({ message: 'User deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
+// Workspace routes
 app.post('/workspaces', authenticateToken, async (req, res) => {
   try {
-    const { placeId, name, address, latitude, longitude, rating } = req.body;
-    const workspace = new Workspace({ userId: req.user._id, placeId, name, address, latitude, longitude, rating });
+    const workspace = new Workspace({ userId: req.user.userId, ...req.body });
     await workspace.save();
     res.status(201).json(workspace);
   } catch (err) {
@@ -218,7 +210,7 @@ app.post('/workspaces', authenticateToken, async (req, res) => {
 
 app.get('/workspaces', authenticateToken, async (req, res) => {
   try {
-    const workspaces = await Workspace.find({ userId: req.user._id });
+    const workspaces = await Workspace.find({ userId: req.user.userId });
     res.json(workspaces);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -227,19 +219,22 @@ app.get('/workspaces', authenticateToken, async (req, res) => {
 
 app.delete('/workspaces/:id', authenticateToken, async (req, res) => {
   try {
-    await Workspace.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+    await Workspace.findOneAndDelete({ _id: req.params.id, userId: req.user.userId });
     res.json({ message: 'Workspace deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Currency conversion routes
 app.post('/currency-conversions', authenticateToken, async (req, res) => {
   try {
-    const { fromCurrency, toCurrency, amount, convertedAmount, rate } = req.body;
-    const currencyConversion = new CurrencyConversion({ userId: req.user._id, fromCurrency, toCurrency, amount, convertedAmount, rate });
-    await currencyConversion.save();
-    res.status(201).json(currencyConversion);
+    const conversion = new CurrencyConversion({ 
+      userId: req.user.userId, 
+      ...req.body 
+    });
+    await conversion.save();
+    res.status(201).json(conversion);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -247,20 +242,29 @@ app.post('/currency-conversions', authenticateToken, async (req, res) => {
 
 app.get('/currency-conversions', authenticateToken, async (req, res) => {
   try {
-    const currencyConversions = await CurrencyConversion.find({ userId: req.user._id });
-    res.json(currencyConversions);
+    const conversions = await CurrencyConversion.find({ userId: req.user.userId });
+    res.json(conversions);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Invoice routes
 app.post('/invoices', authenticateToken, invoiceController.createInvoice);
 app.get('/invoices', authenticateToken, invoiceController.getInvoices);
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
-app.use('/api', projectsRoutes);
-app.use("/admin", adminRoutes);
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint not found' });
+});
 
+// Start server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
