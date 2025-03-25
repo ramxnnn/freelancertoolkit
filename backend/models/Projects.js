@@ -1,6 +1,5 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose'); // Add this line
 
-// Project schema definition
 const projectSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -9,7 +8,7 @@ const projectSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['Pending', 'In Progress', 'Completed'], // Only allow specific status
+    enum: ['Pending', 'In Progress', 'Completed'],
   },
   dueDate: {
     type: Date,
@@ -27,8 +26,18 @@ const projectSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  conversionRate: {
+    type: Number,
+    required: true
+  }
 });
 
-const Project = mongoose.model('Project', projectSchema);
+// Add this line for better query performance
+projectSchema.index({ userId: 1 });
 
-module.exports = Project;
+module.exports = mongoose.model('Project', projectSchema);
