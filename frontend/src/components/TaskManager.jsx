@@ -28,7 +28,7 @@ const TaskManager = () => {
       }
 
       // Fetch tasks for the logged-in user
-      const response = await axios.get('freelancerbackend.vercel.app/tasks', {
+      const response = await axios.get('https://freelancerbackend.vercel.app/tasks', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
