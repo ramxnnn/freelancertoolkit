@@ -10,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 // Register Route
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role = 'user' } = req.body; // Default role is 'user'
 
     // Check if the user already exists
     const existingUser = await User.findOne({ email });
@@ -21,16 +21,31 @@ router.post("/register", async (req, res) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new user
-    const user = new User({ name, email, password: hashedPassword });
+    // Create a new user with role
+    const user = new User({ name, email, password: hashedPassword, role });
     await user.save();
 
-    // Generate a JWT token
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    // Generate a JWT token with role included
+    const token = jwt.sign(
+      { 
+        userId: user._id,
+        role: user.role // Include role in token
+      }, 
+      JWT_SECRET, 
+      { expiresIn: "7d" }
+    );
 
-    res.status(201).json({ token, user: { _id: user._id, name, email } });
+    res.status(201).json({ 
+      token, 
+      user: { 
+        _id: user._id, 
+        name, 
+        email,
+        role: user.role // Include role in response
+      } 
+    });
   } catch (error) {
-    console.error("Register error:", error); // Log the error
+    console.error("Register error:", error);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -42,27 +57,37 @@ router.post("/login", async (req, res) => {
 
     // Check if the user exists
     const user = await User.findOne({ email });
-    console.log("Found user:", user); // Log the found user for debugging
     if (!user) {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
     // Compare passwords
-    console.log("Password:", password); // Log the plain password for debugging
-    console.log("Hashed Password:", user.password); // Log the stored hashed password
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log("Password match result:", isMatch); // Log the result of the password comparison
-
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    // Generate a JWT token
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    // Generate a JWT token with role included
+    const token = jwt.sign(
+      { 
+        userId: user._id,
+        role: user.role // Include role in token
+      }, 
+      JWT_SECRET, 
+      { expiresIn: "7d" }
+    );
 
-    res.json({ token, user: { _id: user._id, name: user.name, email: user.email } });
+    res.json({ 
+      token, 
+      user: { 
+        _id: user._id, 
+        name: user.name, 
+        email: user.email,
+        role: user.role // Include role in response
+      } 
+    });
   } catch (error) {
-    console.error("Login error:", error); // Log the error for debugging
+    console.error("Login error:", error);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -83,9 +108,14 @@ router.get("/protected", async (req, res) => {
       return res.status(401).json({ error: "User not found" });
     }
 
-    res.json({ user });
+    res.json({ 
+      user: {
+        ...user.toObject(),
+        role: user.role // Include role from token
+      }
+    });
   } catch (error) {
-    console.error("Protected route error:", error); // Log the error for debugging
+    console.error("Protected route error:", error);
     res.status(401).json({ error: "Invalid token" });
   }
 });

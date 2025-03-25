@@ -44,6 +44,16 @@ const Header = () => {
                 Dashboard
               </Button>
 
+              {/* Admin Button (visible only to admins) */}
+              {user?.role === 'admin' && (
+                <Button
+                  onClick={() => navigate('/admin')}
+                  className="bg-purple-600 hover:bg-purple-700 px-3 py-1.5 text-sm"
+                >
+                  Admin
+                </Button>
+              )}
+
               {/* Logout Button */}
               <Button
                 onClick={handleLogout}
@@ -80,6 +90,9 @@ const Header = () => {
                       <NavItem path="/tasks" label="Tasks" toggle={() => setIsMenuOpen(false)} />
                       <NavItem path="/projects" label="Projects" toggle={() => setIsMenuOpen(false)} />
                       <NavItem path="/invoices" label="Invoices" toggle={() => setIsMenuOpen(false)} />
+                      {user?.role === 'admin' && (
+                        <NavItem path="/admin" label="Admin Panel" toggle={() => setIsMenuOpen(false)} />
+                      )}
                       <NavItem path="/currency" label="Currency Converter" toggle={() => setIsMenuOpen(false)} />
                       <NavItem
                         path="/workspacefinder"

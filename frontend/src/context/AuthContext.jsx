@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext();
 
@@ -16,17 +17,18 @@ const AuthProvider = ({ children }) => {
           const response = await axios.get('https://freelancerbackend.vercel.app/protected', {
             headers: { Authorization: `Bearer ${token}` },
           });
-          setUser(response.data.user); // Set user if token is valid
+          
+          // Use the role from the verified backend response only
+          setUser(response.data.user);
         } else {
-          setUser(null); // No token means no user
+          setUser(null);
         }
       } catch (error) {
-        // Handle token expiry or any other error (e.g. unauthorized)
         console.error('Authentication check failed:', error);
-        localStorage.removeItem('token'); // Remove invalid token
-        setUser(null); // Reset user state on failure
+        localStorage.removeItem('token');
+        setUser(null);
       } finally {
-        setIsLoading(false); // Make sure loading is set to false after auth check
+        setIsLoading(false);
       }
     };
 
@@ -36,8 +38,10 @@ const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await axios.post('https://freelancerbackend.vercel.app/login', { email, password });
-      localStorage.setItem('token', response.data.token); // Save token to localStorage
-      setUser(response.data.user); // Set the user in the state
+      localStorage.setItem('token', response.data.token);
+      
+      // Set user with role from the verified backend response
+      setUser(response.data.user);
     } catch (error) {
       console.error("Login error:", error);
       throw new Error(error.response?.data?.error || 'Login failed.');
@@ -47,8 +51,10 @@ const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     try {
       const response = await axios.post('https://freelancerbackend.vercel.app/register', { name, email, password });
-      localStorage.setItem('token', response.data.token); // Save token to localStorage
-      setUser(response.data.user); // Set the user in the state
+      localStorage.setItem('token', response.data.token);
+      
+      // Set user with role from the verified backend response
+      setUser(response.data.user);
     } catch (error) {
       console.error("Registration error:", error);
       throw new Error(error.response?.data?.error || 'Registration failed.');
@@ -56,8 +62,8 @@ const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token'); // Remove token from localStorage
-    setUser(null); // Reset user state
+    localStorage.removeItem('token');
+    setUser(null);
   };
 
   return (

@@ -12,6 +12,7 @@ import TaskManager from './components/TaskManager';
 import Projects from './components/Projects'; // Corrected import (ensure the file name matches)
 import Invoices from './components/Invoices'; // Add this import
 import './styles/styles.css';
+import AdminDashboard from './components/AdminDashboard';
 
 // Reusable Components
 import Button from './components/Button';
@@ -69,6 +70,15 @@ const App = () => {
             element={
               <PrivateRoute>
                 <Invoices />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute>
+                <AdminDashboard />
               </PrivateRoute>
             }
           />

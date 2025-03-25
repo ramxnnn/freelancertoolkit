@@ -19,6 +19,8 @@ const Project = require('./models/Projects');
 const Workspace = require('./models/Workspace');
 const CurrencyConversion = require('./models/CurrencyConversion');
 const invoiceController = require("./controllers/invoiceController");
+const adminRoutes = require("./routes/admin");
+const projectsRoutes = require('./routes/projects');
 
 dotenv.config();
 const app = express();
@@ -255,8 +257,9 @@ app.get('/currency-conversions', authenticateToken, async (req, res) => {
 app.post('/invoices', authenticateToken, invoiceController.createInvoice);
 app.get('/invoices', authenticateToken, invoiceController.getInvoices);
 
-const projectsRoutes = require('./routes/projects');
+
 app.use('/api', projectsRoutes);
+app.use("/admin", adminRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
