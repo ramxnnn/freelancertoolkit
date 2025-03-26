@@ -13,7 +13,6 @@ const TaskManager = () => {
   const [error, setError] = useState('');
   const { user } = useContext(AuthContext);
 
-  // Define API base URL
   const API_BASE_URL = 'https://freelancerbackend.vercel.app';
 
   useEffect(() => {
@@ -36,14 +35,12 @@ const TaskManager = () => {
         },
       });
 
-      // Backend should already filter by userId, but this is a safety check
       const userTasks = response.data.filter(task => task.userId === user._id);
       setTasks(userTasks);
     } catch (error) {
       if (error.response?.status === 401) {
         setError('Session expired. Please log in again.');
         localStorage.removeItem('token');
-        // Optionally redirect to login
       } else {
         setError('Failed to fetch tasks. Please try again.');
       }
@@ -72,7 +69,7 @@ const TaskManager = () => {
           title,
           description,
           dueDate,
-          status: 'Pending' // Added default status
+          status: 'Pending'
         },
         {
           headers: {
@@ -90,6 +87,55 @@ const TaskManager = () => {
     } catch (error) {
       console.error('Add task error:', error);
       setError(error.response?.data?.message || 'Failed to add task. Please try again.');
+    }
+  };
+
+  const handleCompleteTask = async (taskId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No token found. Please log in again.');
+        return;
+      }
+
+      const response = await axios.put(
+        `${API_BASE_URL}/tasks/${taskId}`,
+        { status: 'Completed' },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setTasks(tasks.map(task => 
+        task._id === taskId ? { ...task, status: 'Completed' } : task
+      ));
+    } catch (error) {
+      console.error('Complete task error:', error);
+      setError('Failed to mark task as complete. Please try again.');
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No token found. Please log in again.');
+        return;
+      }
+
+      await axios.delete(`${API_BASE_URL}/tasks/${taskId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setTasks(tasks.filter(task => task._id !== taskId));
+    } catch (error) {
+      console.error('Delete task error:', error);
+      setError('Failed to delete task. Please try again.');
     }
   };
 
@@ -139,7 +185,7 @@ const TaskManager = () => {
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               required
-              min={new Date().toISOString().split('T')[0]} // Prevent past dates
+              min={new Date().toISOString().split('T')[0]}
             />
           </div>
           <Button type="submit" className="w-full">
@@ -170,6 +216,24 @@ const TaskManager = () => {
               <p className="text-gray-600 mt-2">
                 <strong>Due:</strong> {new Date(task.dueDate).toLocaleDateString()}
               </p>
+              <div className="flex gap-2 mt-3">
+                {task.status === 'Pending' && (
+                  <Button 
+                    variant="success"
+                    onClick={() => handleCompleteTask(task._id)}
+                    className="text-sm py-1 px-3"
+                  >
+                    Mark Complete
+                  </Button>
+                )}
+                <Button 
+                  variant="danger"
+                  onClick={() => handleDeleteTask(task._id)}
+                  className="text-sm py-1 px-3"
+                >
+                  Delete
+                </Button>
+              </div>
             </li>
           ))}
         </ul>
