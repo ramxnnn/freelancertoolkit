@@ -25,7 +25,7 @@ const Invoices = () => {
         return;
       }
 
-      const response = await axios.get('http://localhost:8888/invoices', {
+      const response = await axios.get('https://freelancerbackend.vercel.app/invoices', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
