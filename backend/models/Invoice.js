@@ -7,7 +7,11 @@ const serviceSchema = new mongoose.Schema({
 });
 
 const invoiceSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  userId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User',
+    required: true // Added required constraint
+  },
   projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
   clientName: String,
   services: [serviceSchema],
@@ -17,6 +21,9 @@ const invoiceSchema = new mongoose.Schema({
   paymentDate: Date,
   status: { type: String, enum: ['Pending', 'Paid'], default: 'Pending' },
 });
+
+// Add index for better query performance
+invoiceSchema.index({ userId: 1 });
 
 const Invoice = mongoose.model('Invoice', invoiceSchema);
 module.exports = Invoice;

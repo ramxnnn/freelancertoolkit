@@ -3,7 +3,7 @@ import Card from './Card';
 import Button from './Button';
 import Input from './Input';
 
-const InvoiceForm = ({ userId, onInvoiceCreated }) => {
+const InvoiceForm = ({ onInvoiceCreated }) => {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState('');
   const [clientName, setClientName] = useState('');
@@ -41,7 +41,6 @@ const InvoiceForm = ({ userId, onInvoiceCreated }) => {
         return;
       }
 
-      // Validate services
       const hasEmptyFields = services.some(s => 
         !s.name.trim() || 
         s.quantity === '' || 
@@ -55,13 +54,11 @@ const InvoiceForm = ({ userId, onInvoiceCreated }) => {
         return;
       }
 
-      // Convert to numbers and calculate total
       const calculatedAmount = services.reduce((sum, service) => {
         return sum + (Number(service.quantity) * Number(service.price));
       }, 0);
 
       const invoiceData = { 
-        userId,
         projectId: projectId || null,
         clientName,
         services: services.map(s => ({
@@ -113,7 +110,6 @@ const InvoiceForm = ({ userId, onInvoiceCreated }) => {
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
             className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
           >
             <option value="">Select a Project</option>
             {projects.map((project) => (
@@ -140,7 +136,7 @@ const InvoiceForm = ({ userId, onInvoiceCreated }) => {
           {services.map((service, index) => (
             <div key={index} className="flex gap-4 items-end">
               <Input
-                placeholder="Service name (e.g., Web Development)"
+                placeholder="Service name"
                 value={service.name}
                 onChange={(e) => {
                   const newServices = [...services];
@@ -151,7 +147,7 @@ const InvoiceForm = ({ userId, onInvoiceCreated }) => {
               />
               <Input
                 type="number"
-                placeholder="Quantity (e.g., 2)"
+                placeholder="Quantity"
                 value={service.quantity}
                 onChange={(e) => {
                   const newServices = [...services];
@@ -163,7 +159,7 @@ const InvoiceForm = ({ userId, onInvoiceCreated }) => {
               />
               <Input
                 type="number"
-                placeholder="Price per unit (e.g., 100)"
+                placeholder="Price"
                 value={service.price}
                 onChange={(e) => {
                   const newServices = [...services];

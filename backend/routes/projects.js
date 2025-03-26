@@ -14,10 +14,14 @@ const authenticateToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
   if (!token) return res.sendStatus(401); // Unauthorized
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {  // Changed 'user' to 'decoded'
     if (err) return res.sendStatus(403); // Forbidden
-    req.user = user; // Attach the user to the request object
-    next(); // Proceed to the next middleware/route
+    req.user = {
+      userId: decoded.userId,  // Explicitly set userId from decoded token
+      role: decoded.role,
+      email: decoded.email
+    };
+    next();
   });
 };
 
@@ -27,7 +31,7 @@ const getTimezone = async (location) => {
     const response = await axios.get(`https://maps.googleapis.com/maps/api/timezone/json`, {
       params: { 
         location,
-        timestamp: Math.floor(Date.now() / 1000), // Use current timestamp
+        timestamp: Math.floor(Date.now() / 1000),
         key: PLACES_API_KEY,
       },
     });
@@ -122,10 +126,10 @@ router.post('/projects', authenticateToken, async (req, res) => {
       name,
       status,
       dueDate,
-      location: city, // Store city name
+      location: city,
       currency,
       timezone,
-      userId: req.user._id,
+      userId: req.user.userId,  // Changed from _id to userId
       conversionRate,
     });
 
@@ -143,7 +147,7 @@ router.post('/projects', authenticateToken, async (req, res) => {
 // Get All Projects for the Logged-in User (Protected Route)
 router.get('/projects', authenticateToken, async (req, res) => {
   try {
-    const projects = await Project.find({ userId: req.user._id });
+    const projects = await Project.find({ userId: req.user.userId });  // Changed from _id to userId
     res.json(projects);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching projects', error });
@@ -153,7 +157,10 @@ router.get('/projects', authenticateToken, async (req, res) => {
 // Delete a Project (Protected Route)
 router.delete('/projects/:id', authenticateToken, async (req, res) => {
   try {
-    const project = await Project.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+    const project = await Project.findOneAndDelete({ 
+      _id: req.params.id, 
+      userId: req.user.userId  // Changed from _id to userId
+    });
     if (!project) return res.status(404).json({ message: 'Project not found' });
     res.status(200).json({ message: 'Project deleted' });
   } catch (error) {

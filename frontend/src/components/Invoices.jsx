@@ -12,31 +12,29 @@ const Invoices = () => {
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    if (user && user._id) {
+    if (user) {
       fetchInvoices();
     }
   }, [user]);
 
   const fetchInvoices = async () => {
     try {
-      const token = localStorage.getItem('token'); // Get the token from localStorage
+      const token = localStorage.getItem('token');
       if (!token) {
         setError('No token found. Please log in again.');
         return;
       }
 
-      const response = await axios.get(`http://localhost:8888/invoices?userId=${user._id}`, {
+      const response = await axios.get('http://localhost:8888/invoices', {
         headers: {
-          Authorization: `Bearer ${token}`, // Include the token in the request headers
+          Authorization: `Bearer ${token}`,
         },
       });
       setInvoices(response.data);
     } catch (error) {
       if (error.response?.status === 401) {
-        // Token is invalid or expired
-        localStorage.removeItem('token'); // Clear the invalid token
+        localStorage.removeItem('token');
         setError('Session expired. Please log in again.');
-        // Redirect to login page
         window.location.href = '/login';
       } else {
         setError('Failed to fetch invoices. Please try again.');
@@ -53,7 +51,6 @@ const Invoices = () => {
       const element = document.createElement('div');
       element.innerHTML = `
         <style>
-          /* PDF-specific styles */
           body {
             font-family: Arial, Helvetica, sans-serif;
             margin: 0;
@@ -159,7 +156,6 @@ const Invoices = () => {
         </div>
       `;
 
-      // PDF configuration
       const options = {
         margin: [10, 10],
         filename: `Invoice_${invoice.clientName}.pdf`,
@@ -178,7 +174,6 @@ const Invoices = () => {
         }
       };
 
-      // Generate PDF after short delay to ensure rendering
       setTimeout(() => {
         html2pdf()
           .set(options)
@@ -199,7 +194,7 @@ const Invoices = () => {
           {error}
         </div>
       )}
-      <InvoiceForm userId={user?._id} onInvoiceCreated={handleInvoiceCreated} />
+      <InvoiceForm onInvoiceCreated={handleInvoiceCreated} />
       <ul className="space-y-4 mt-6">
         {invoices.map((invoice) => (
           <li key={invoice._id} className="border p-4 rounded-lg bg-gray-50">
