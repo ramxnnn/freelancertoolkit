@@ -12,12 +12,12 @@ const PLACES_API_KEY = process.env.PLACES_API_KEY;
 // Token Validation Middleware
 const authenticateToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
-  if (!token) return res.sendStatus(401); // Unauthorized
+  if (!token) return res.sendStatus(401); 
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {  // Changed 'user' to 'decoded'
-    if (err) return res.sendStatus(403); // Forbidden
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {  
+    if (err) return res.sendStatus(403); 
     req.user = {
-      userId: decoded.userId,  // Explicitly set userId from decoded token
+      userId: decoded.userId,  
       role: decoded.role,
       email: decoded.email
     };
@@ -129,7 +129,7 @@ router.post('/projects', authenticateToken, async (req, res) => {
       location: city,
       currency,
       timezone,
-      userId: req.user.userId,  // Changed from _id to userId
+      userId: req.user.userId, 
       conversionRate,
     });
 
@@ -147,7 +147,7 @@ router.post('/projects', authenticateToken, async (req, res) => {
 // Get All Projects for the Logged-in User (Protected Route)
 router.get('/projects', authenticateToken, async (req, res) => {
   try {
-    const projects = await Project.find({ userId: req.user.userId });  // Changed from _id to userId
+    const projects = await Project.find({ userId: req.user.userId }); 
     res.json(projects);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching projects', error });

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import Card from './Card'; // Reusable Card component
-import Button from './Button'; // Reusable Button component
-import Input from './Input'; // Reusable Input component
+import Card from './Card';
+import Button from './Button'; 
+import Input from './Input'; 
 
 const TimezoneDisplay = () => {
   const [city, setCity] = useState('');

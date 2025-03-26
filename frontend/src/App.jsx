@@ -9,22 +9,22 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import TaskManager from './components/TaskManager';
-import Projects from './components/Projects'; // Corrected import (ensure the file name matches)
-import Invoices from './components/Invoices'; // Add this import
+import Projects from './components/Projects'; 
+import Invoices from './components/Invoices'; 
 import './styles/styles.css';
 import AdminDashboard from './components/AdminDashboard';
 
-// Reusable Components
+
 import Button from './components/Button';
 import Card from './components/Card';
 
-// PrivateRoute component to protect routes
+
 const PrivateRoute = ({ children }) => {
   const { user, isLoading } = React.useContext(AuthContext);
 
   // Show loading state until the auth check is done
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>; // Tailwind loading state
+    return <div className="flex justify-center items-center h-screen">Loading...</div>; 
   }
 
   return user ? children : <Navigate to="/login" />;

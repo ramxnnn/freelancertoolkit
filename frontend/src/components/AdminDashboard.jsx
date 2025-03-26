@@ -3,8 +3,8 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { FiUser, FiUserX, FiUserCheck, FiTrash2, FiActivity } from 'react-icons/fi';
 
-// Set your backend API base URL (update this to match your actual backend URL)
-const API_BASE_URL = 'https://freelancerbackend.vercel.app'; // Or your production URL
+
+const API_BASE_URL = 'https://freelancerbackend.vercel.app'; 
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);

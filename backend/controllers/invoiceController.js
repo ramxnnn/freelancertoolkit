@@ -3,7 +3,7 @@ const Invoice = require("../models/Invoice");
 exports.getInvoices = async (req, res) => {
   try {
     const { projectId, status } = req.query;
-    const filter = { userId: req.user.userId }; // Changed from _id to userId
+    const filter = { userId: req.user.userId }; 
     if (projectId) filter.projectId = projectId;
     if (status) filter.status = status;
 
@@ -27,7 +27,7 @@ exports.createInvoice = async (req, res) => {
     }
 
     const invoiceData = {
-      userId: req.user.userId, // Changed from _id to userId
+      userId: req.user.userId, 
       clientName,
       services,
       amount,

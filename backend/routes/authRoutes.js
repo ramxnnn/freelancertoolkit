@@ -4,18 +4,18 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const router = express.Router();
 
-// Secret key for JWT
+// Secret key for JWT (use environment variable for security)
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
-// Register Route with admin creation control
+// Register Route - Allows users to sign up, with role-based access control
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, role = 'user' } = req.body;
 
-    // Prevent non-admins from creating admin accounts
-    const requestingUser = req.user; // From auth middleware
+    // Prevent unauthorized users from creating admin accounts
+    const requestingUser = req.user; // Retrieved from auth middleware
     if (role === 'admin' && (!requestingUser || requestingUser.role !== 'admin')) {
-      return res.status(403).json({ error: "Admin privileges required to create admin accounts" });
+      return res.status(403).json({ error: "Only admins can create admin accounts" });
     }
 
     // Validate email format
@@ -24,21 +24,21 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "Invalid email format" });
     }
 
-    // Password strength validation
+    // Ensure password meets security requirements
     if (password.length < 8) {
       return res.status(400).json({ error: "Password must be at least 8 characters long" });
     }
 
-    // Check if the user already exists
+    // Check if the email is already in use
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: "Email is already in use" });
+      return res.status(400).json({ error: "Email is already registered" });
     }
 
-    // Hash the password with higher salt rounds for better security
+    // Securely hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create a new user with role
+    // Create and store the new user
     const user = new User({ 
       name, 
       email, 
@@ -49,15 +49,15 @@ router.post("/register", async (req, res) => {
 
     await user.save();
 
-    // Generate a JWT token with role included
+    // Generate a JWT token that includes user details
     const token = jwt.sign(
       { 
         userId: user._id,
         role: user.role,
-        email: user.email // Include email for additional verification
+        email: user.email 
       }, 
       JWT_SECRET, 
-      { expiresIn: "1d" } // Shorter expiration for better security
+      { expiresIn: "1d" } 
     );
 
     res.status(201).json({ 
@@ -71,45 +71,45 @@ router.post("/register", async (req, res) => {
       } 
     });
   } catch (error) {
-    console.error("Register error:", error);
-    res.status(500).json({ error: "Server error during registration" });
+    console.error("Error during registration:", error);
+    res.status(500).json({ error: "Something went wrong while registering" });
   }
 });
 
-// Login Route with enhanced security
+// Login Route - Handles user authentication
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Basic validation
+    // Ensure both fields are provided
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
 
-    // Check if the user exists
+    // Find the user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    // Check if account is suspended
+    // Prevent login if account is suspended
     if (user.isSuspended) {
       return res.status(403).json({ 
-        error: "Account suspended. Please contact administrator." 
+        error: "This account has been suspended. Contact support." 
       });
     }
 
-    // Compare passwords with timing-safe comparison
+    // Verify password with stored hash
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    // Update last active time
+    // Update last active timestamp
     user.lastActive = new Date();
     await user.save();
 
-    // Generate a JWT token with additional security claims
+    // Generate JWT token with additional security attributes
     const token = jwt.sign(
       { 
         userId: user._id,
@@ -122,12 +122,12 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    // Set secure cookie with token (optional)
+    // Set token as a secure cookie
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 1 day
+      maxAge: 24 * 60 * 60 * 1000 
     });
 
     res.json({ 
@@ -141,36 +141,30 @@ router.post("/login", async (req, res) => {
       } 
     });
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ error: "Server error during login" });
+    console.error("Error during login:", error);
+    res.status(500).json({ error: "Something went wrong while logging in" });
   }
 });
 
-// Protected Route with enhanced verification
+// Protected Route - Requires authentication
 router.get("/protected", async (req, res) => {
   try {
-    // Check for token in both header and cookies
+    // Token can be provided in headers or cookies
     const token = req.headers.authorization?.split(" ")[1] || req.cookies?.token;
-    
     if (!token) {
-      return res.status(401).json({ error: "Authorization token required" });
+      return res.status(401).json({ error: "Access denied. No token provided." });
     }
 
-    // Verify token with additional checks
+    // Verify the token and its claims
     const decoded = jwt.verify(token, JWT_SECRET, { 
       issuer: 'freelancer-toolkit-api',
       audience: 'freelancer-toolkit-client'
     });
 
-    // Check if token was issued before the last password change
+    // Fetch the user and ensure the token is still valid
     const user = await User.findById(decoded.userId).select("-password");
     if (!user) {
       return res.status(401).json({ error: "User not found" });
-    }
-
-    // Additional security check - verify email matches
-    if (decoded.email !== user.email) {
-      return res.status(401).json({ error: "Token validation failed" });
     }
 
     res.json({ 
@@ -181,22 +175,13 @@ router.get("/protected", async (req, res) => {
     });
   } catch (error) {
     console.error("Protected route error:", error);
-    
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: "Token expired" });
-    }
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: "Invalid token" });
-    }
-    
-    res.status(401).json({ error: "Authentication failed" });
+    res.status(401).json({ error: "Invalid or expired token" });
   }
 });
 
-// Admin-only route to get all users (simplified example)
+// Admin Route - Lists all users
 router.get("/admin/users", async (req, res) => {
   try {
-    // Verify admin privileges
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
       return res.status(401).json({ error: "Authorization token required" });
@@ -204,22 +189,21 @@ router.get("/admin/users", async (req, res) => {
 
     const decoded = jwt.verify(token, JWT_SECRET);
     if (decoded.role !== 'admin') {
-      return res.status(403).json({ error: "Admin access required" });
+      return res.status(403).json({ error: "Only admins can access this route" });
     }
 
     const users = await User.find({}, 'name email role isSuspended lastActive createdAt');
     res.json(users);
   } catch (error) {
-    console.error("Admin users error:", error);
-    res.status(500).json({ error: "Server error" });
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Could not retrieve users" });
   }
 });
 
-// Logout route (optional)
+// Logout Route - Clears authentication token
 router.post("/logout", (req, res) => {
-  // Clear the token cookie
   res.clearCookie('token');
-  res.json({ message: "Logged out successfully" });
+  res.json({ message: "Successfully logged out" });
 });
 
 module.exports = router;

@@ -9,7 +9,7 @@ import {
   FaCalendarAlt,
   FaDollarSign,
   FaFileInvoice,
-  FaProjectDiagram // Added this import
+  FaProjectDiagram 
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
