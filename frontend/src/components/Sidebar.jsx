@@ -14,13 +14,11 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="fixed h-full w-56 bg-gray-800 text-white flex flex-col">
-      {/* Logo/Sidebar Header - Reduced font size */}
+    <div className="fixed h-full w-56 bg-gray-800 text-white flex flex-col z-30">
       <div className="p-3 border-b border-gray-700">
         <h1 className="text-lg font-semibold">Freelancer Toolkit</h1>
       </div>
       
-      {/* Navigation Items */}
       <nav className="flex-1 overflow-y-auto py-1 px-2">
         <ul className="space-y-1">
           {navItems.map((item) => (
@@ -41,7 +39,6 @@ const Sidebar = () => {
         </ul>
       </nav>
       
-      {/* User Profile - Reduced font size */}
       <div className="p-3 border-t border-gray-700">
         <div className="flex items-center">
           <div className="w-7 h-7 rounded-full bg-gray-600 flex items-center justify-center mr-2 text-xs">

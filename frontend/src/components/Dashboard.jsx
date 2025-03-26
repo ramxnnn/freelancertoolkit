@@ -9,6 +9,7 @@ import {
   FaCalendarAlt,
   FaDollarSign,
   FaFileInvoice,
+  FaProjectDiagram // Added this import
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
@@ -24,41 +25,32 @@ const Dashboard = () => {
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
-  // Fetch projects, tasks, invoices, and earnings
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        // Fetch projects
-        const projectsResponse = await fetch(`${API_BASE_URL}/api/projects`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        // Fetch tasks
-        const tasksResponse = await fetch(`${API_BASE_URL}/tasks`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        // Fetch invoices
-        const invoicesResponse = await fetch(`${API_BASE_URL}/invoices`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const [projectsResponse, tasksResponse, invoicesResponse] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/projects`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/tasks`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/invoices`, { headers: { Authorization: `Bearer ${token}` } })
+        ]);
 
         if (!projectsResponse.ok || !tasksResponse.ok || !invoicesResponse.ok) {
           throw new Error("Failed to fetch data");
         }
 
-        const projectsData = await projectsResponse.json();
-        const tasksData = await tasksResponse.json();
-        const invoicesData = await invoicesResponse.json();
+        const [projectsData, tasksData, invoicesData] = await Promise.all([
+          projectsResponse.json(),
+          tasksResponse.json(),
+          invoicesResponse.json()
+        ]);
 
         setProjects(projectsData);
         setTasks(tasksData);
         setInvoices(invoicesData);
 
-        // Fetch earnings for completed projects
         const completedProjects = projectsData.filter(p => p.status === "Completed");
         const earnings = await Promise.all(
           completedProjects.map(async (project) => {
@@ -76,159 +68,314 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
-  // Generate pie chart data from tasks
   const taskData = [
     { name: "Completed Tasks", value: tasks.filter(t => t.status === "Completed").length },
     { name: "Pending Tasks", value: tasks.filter(t => t.status === "Pending").length },
   ];
   
-  const COLORS = ["#4CAF50", "#F44336"];
+  const COLORS = ["#10B981", "#EF4444"];
 
   return (
-    <div className={`${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"} min-h-screen p-6`}>
+    <div className={`transition-colors duration-300 ${darkMode ? "bg-slate-900 text-slate-100" : "bg-slate-50 text-slate-900"} min-h-screen p-4 md:p-6`}>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <button onClick={toggleDarkMode} className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600">
-          {darkMode ? <FaSun /> : <FaMoon />}
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-blue-600 bg-clip-text text-transparent">
+          Dashboard Overview
+        </h1>
+        <button 
+          onClick={toggleDarkMode} 
+          className="p-2 rounded-full bg-slate-700/50 hover:bg-slate-600/50 backdrop-blur-sm transition-all"
+        >
+          {darkMode ? <FaSun className="text-yellow-300" /> : <FaMoon className="text-blue-200" />}
         </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <motion.div whileHover={{ scale: 1.05 }} className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}>
-          <FaTasks className="text-3xl mb-2 text-blue-500" />
-          <h2 className="text-lg font-semibold">Total Projects</h2>
-          <p className="text-xl font-bold">{projects.length}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <motion.div 
+          whileHover={{ scale: 1.03 }}
+          className={`p-6 backdrop-blur-sm rounded-xl shadow-lg ${
+            darkMode 
+              ? "bg-slate-800/80 border border-slate-700/50" 
+              : "bg-white/80 border border-slate-200/50"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-3">
+              <FaTasks className="text-2xl text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Projects</h2>
+              <p className="text-2xl font-bold">{projects.length}</p>
+            </div>
+          </div>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.05 }} className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}>
-          <FaMoneyBillWave className="text-3xl mb-2 text-green-500" />
-          <h2 className="text-lg font-semibold">Total Earnings</h2>
-          <p className="text-xl font-bold">
-            ${earningsData.reduce((sum, earnings) => sum + (earnings.totalEarnings || 0), 0)}
-          </p>
+        <motion.div 
+          whileHover={{ scale: 1.03 }}
+          className={`p-6 backdrop-blur-sm rounded-xl shadow-lg ${
+            darkMode 
+              ? "bg-slate-800/80 border border-slate-700/50" 
+              : "bg-white/80 border border-slate-200/50"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-3">
+              <FaMoneyBillWave className="text-2xl text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Earnings</h2>
+              <p className="text-2xl font-bold">
+                ${earningsData.reduce((sum, earnings) => sum + (earnings.totalEarnings || 0), 0).toLocaleString()}
+              </p>
+            </div>
+          </div>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.05 }} className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}>
-          <FaFileInvoice className="text-3xl mb-2 text-purple-500" />
-          <h2 className="text-lg font-semibold">Total Invoices</h2>
-          <p className="text-xl font-bold">{invoices.length}</p>
+        <motion.div 
+          whileHover={{ scale: 1.03 }}
+          className={`p-6 backdrop-blur-sm rounded-xl shadow-lg ${
+            darkMode 
+              ? "bg-slate-800/80 border border-slate-700/50" 
+              : "bg-white/80 border border-slate-200/50"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-3">
+              <FaFileInvoice className="text-2xl text-purple-600 dark:text-purple-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Invoices</h2>
+              <p className="text-2xl font-bold">{invoices.length}</p>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div 
+          whileHover={{ scale: 1.03 }}
+          className={`p-6 backdrop-blur-sm rounded-xl shadow-lg ${
+            darkMode 
+              ? "bg-slate-800/80 border border-slate-700/50" 
+              : "bg-white/80 border border-slate-200/50"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-3">
+              <FaTasks className="text-2xl text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-medium text-slate-500 dark:text-slate-400">Pending Tasks</h2>
+              <p className="text-2xl font-bold">{taskData[1].value}</p>
+            </div>
+          </div>
         </motion.div>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <div className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}>
-          <h2 className="text-lg font-semibold mb-4">Earnings Overview</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={earningsData}>
-              <XAxis dataKey="name" stroke={darkMode ? "#fff" : "#000"} />
-              <YAxis stroke={darkMode ? "#fff" : "#000"} />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: darkMode ? "#1F2937" : "#fff",
-                  border: darkMode ? "1px solid #374151" : "1px solid #e5e7eb",
-                  borderRadius: "8px"
-                }}
-              />
-              <Bar dataKey="totalEarnings" fill="#3b82f6" radius={[5, 5, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className={`p-6 rounded-xl shadow-lg ${
+          darkMode 
+            ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50" 
+            : "bg-gradient-to-br from-white/80 to-slate-50/80 border border-slate-200/50"
+        }`}>
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <FaMoneyBillWave className="text-blue-500" />
+            <span>Earnings Overview</span>
+          </h2>
+          <div className="h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={earningsData}>
+                <XAxis 
+                  dataKey="name" 
+                  stroke={darkMode ? "#94a3b8" : "#64748b"} 
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis 
+                  stroke={darkMode ? "#94a3b8" : "#64748b"} 
+                  tick={{ fontSize: 12 }}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: darkMode ? "#1e293b" : "#ffffff",
+                    borderColor: darkMode ? "#334155" : "#e2e8f0",
+                    borderRadius: "8px",
+                    boxShadow: darkMode ? "0 4px 6px rgba(0, 0, 0, 0.25)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
+                    fontSize: "14px"
+                  }}
+                />
+                <Bar 
+                  dataKey="totalEarnings" 
+                  fill="#4f46e5" 
+                  radius={[4, 4, 0, 0]} 
+                  animationDuration={1500}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        <div className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}>
-          <h2 className="text-lg font-semibold mb-4">Task Completion</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie 
-                data={taskData} 
-                dataKey="value" 
-                outerRadius={80}
-                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-              >
-                {taskData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: darkMode ? "#1F2937" : "#fff",
-                  border: darkMode ? "1px solid #374151" : "1px solid #e5e7eb",
-                  borderRadius: "8px"
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+        <div className={`p-6 rounded-xl shadow-lg ${
+          darkMode 
+            ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50" 
+            : "bg-gradient-to-br from-white/80 to-slate-50/80 border border-slate-200/50"
+        }`}>
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <FaTasks className="text-green-500" />
+            <span>Task Completion</span>
+          </h2>
+          <div className="h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie 
+                  data={taskData} 
+                  dataKey="value" 
+                  outerRadius={80}
+                  innerRadius={60}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {taskData.map((_, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={COLORS[index]} 
+                      stroke={darkMode ? "#1e293b" : "#ffffff"}
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: darkMode ? "#1e293b" : "#ffffff",
+                    borderColor: darkMode ? "#334155" : "#e2e8f0",
+                    borderRadius: "8px",
+                    boxShadow: darkMode ? "0 4px 6px rgba(0, 0, 0, 0.25)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
+                    fontSize: "14px"
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
       {/* Completed Projects */}
-      <div className="mt-6">
-        <div className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}>
-          <h2 className="text-lg font-semibold mb-4">Completed Projects</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={`p-6 rounded-xl shadow-lg mb-6 ${
+        darkMode 
+          ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50" 
+          : "bg-gradient-to-br from-white/80 to-slate-50/80 border border-slate-200/50"
+      }`}>
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <FaProjectDiagram className="text-purple-500" />
+          <span>Completed Projects</span>
+        </h2>
+        {projects.filter(project => project.status === "Completed").length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects
               .filter(project => project.status === "Completed")
               .map(project => (
                 <motion.div
                   key={project._id}
-                  whileHover={{ scale: 1.02 }}
-                  className={`p-6 border rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-50"}`}
+                  whileHover={{ y: -5 }}
+                  className={`p-5 rounded-lg border ${
+                    darkMode 
+                      ? "bg-slate-800/60 border-slate-700/50 hover:border-slate-600/50" 
+                      : "bg-white/60 border-slate-200/50 hover:border-slate-300/50"
+                  } transition-all shadow-sm hover:shadow-md`}
                 >
-                  <h3 className="text-xl font-semibold mb-2">{project.name}</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <FaCalendarAlt className="text-gray-500" />
-                      <span>Due: {new Date(project.dueDate).toLocaleDateString()}</span>
+                  <h3 className="text-xl font-semibold mb-3 text-blue-600 dark:text-blue-400">
+                    {project.name}
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <FaCalendarAlt className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+                      <span className="text-sm">
+                        Due: {new Date(project.dueDate).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <FaMapMarkerAlt className="text-gray-500" />
-                      <span>{project.location}</span>
+                    <div className="flex items-center gap-3">
+                      <FaMapMarkerAlt className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+                      <span className="text-sm">{project.location}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <FaClock className="text-gray-500" />
-                      <span>Timezone: {project.timezone}</span>
+                    <div className="flex items-center gap-3">
+                      <FaClock className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+                      <span className="text-sm">Timezone: {project.timezone}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <FaDollarSign className="text-gray-500" />
-                      <span>{project.currency}</span>
+                    <div className="flex items-center gap-3">
+                      <FaDollarSign className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+                      <span className="text-sm">Currency: {project.currency}</span>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-sm">
+                  <div className="mt-4 flex justify-between items-center">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      project.status === "Completed" 
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
+                        : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                    }`}>
                       {project.status}
                     </span>
                   </div>
                 </motion.div>
               ))}
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-slate-500 dark:text-slate-400">
+              No completed projects yet. Keep working!
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Invoices Section */}
-      <div className="mt-6">
-        <div className={`p-6 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md`}>
-          <h2 className="text-lg font-semibold mb-4">Recent Invoices</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Recent Invoices */}
+      <div className={`p-6 rounded-xl shadow-lg ${
+        darkMode 
+          ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50" 
+          : "bg-gradient-to-br from-white/80 to-slate-50/80 border border-slate-200/50"
+      }`}>
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <FaFileInvoice className="text-indigo-500" />
+          <span>Recent Invoices</span>
+        </h2>
+        {invoices.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {invoices.slice(0, 6).map(invoice => (
               <motion.div
                 key={invoice._id}
-                whileHover={{ scale: 1.02 }}
-                className={`p-6 border rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-50"}`}
+                whileHover={{ y: -5 }}
+                className={`p-5 rounded-lg border ${
+                  darkMode 
+                    ? "bg-slate-800/60 border-slate-700/50 hover:border-slate-600/50" 
+                    : "bg-white/60 border-slate-200/50 hover:border-slate-300/50"
+                } transition-all shadow-sm hover:shadow-md`}
               >
-                <h3 className="text-xl font-semibold mb-2">{invoice.clientName}</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <FaCalendarAlt className="text-gray-500" />
-                    <span>Due: {new Date(invoice.dueDate).toLocaleDateString()}</span>
+                <h3 className="text-xl font-semibold mb-3 text-indigo-600 dark:text-indigo-400">
+                  {invoice.clientName}
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <FaCalendarAlt className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+                    <span className="text-sm">
+                      Due: {new Date(invoice.dueDate).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <FaDollarSign className="text-gray-500" />
-                    <span>Amount: ${invoice.amount}</span>
+                  <div className="flex items-center gap-3">
+                    <FaDollarSign className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+                    <span className="text-sm">Amount: ${invoice.amount.toFixed(2)}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-800 text-sm">
+                  <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      invoice.status === "Paid" 
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
+                        : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                    }`}>
                       {invoice.status}
                     </span>
                   </div>
@@ -236,7 +383,13 @@ const Dashboard = () => {
               </motion.div>
             ))}
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-slate-500 dark:text-slate-400">
+              No invoices created yet. Create your first invoice!
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

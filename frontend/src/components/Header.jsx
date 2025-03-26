@@ -29,14 +29,13 @@ const Header = () => {
   };
 
   return (
-    <header className="w-full bg-gray-800 text-white p-4 shadow-lg">
+    <header className="w-full bg-gray-800 text-white p-4 shadow-lg z-40 sticky top-0">
       <div className="container mx-auto flex justify-between items-center">
         <h1 className="text-2xl font-bold">Freelancer Toolkit</h1>
         
         <nav className="flex items-center gap-3">
           {user ? (
             <>
-              {/* Dashboard Button */}
               <Button
                 onClick={() => navigate('/dashboard')}
                 className="bg-blue-600 hover:bg-blue-700 px-3 py-1.5 text-sm"
@@ -44,7 +43,6 @@ const Header = () => {
                 Dashboard
               </Button>
 
-              {/* Admin Button (visible only to admins) */}
               {user?.role === 'admin' && (
                 <Button
                   onClick={() => navigate('/admin')}
@@ -54,7 +52,6 @@ const Header = () => {
                 </Button>
               )}
 
-              {/* Logout Button */}
               <Button
                 onClick={handleLogout}
                 className="bg-red-600 hover:bg-red-700 px-3 py-1.5 text-sm"
@@ -62,7 +59,6 @@ const Header = () => {
                 Logout
               </Button>
 
-              {/* Hamburger Menu (Moved to the right) */}
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -83,9 +79,8 @@ const Header = () => {
                   </svg>
                 </button>
 
-                {/* Dropdown Menu */}
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-xl border border-gray-700">
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-xl border border-gray-700 z-50">
                     <div className="p-1 space-y-1">
                       <NavItem path="/tasks" label="Tasks" toggle={() => setIsMenuOpen(false)} />
                       <NavItem path="/projects" label="Projects" toggle={() => setIsMenuOpen(false)} />
@@ -106,7 +101,6 @@ const Header = () => {
             </>
           ) : (
             <>
-              {/* Login and Register Buttons */}
               <Button
                 onClick={() => navigate('/login')}
                 className="bg-blue-600 hover:bg-blue-700 px-3 py-1.5 text-sm"
