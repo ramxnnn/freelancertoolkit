@@ -9,7 +9,10 @@ import {
   FaCalendarAlt,
   FaDollarSign,
   FaFileInvoice,
-  FaProjectDiagram 
+  FaProjectDiagram,
+  FaPlay,
+  FaPause,
+  FaStop
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
@@ -21,9 +24,42 @@ const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [earningsData, setEarningsData] = useState([]);
+  const [time, setTime] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8888';
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
+
+  // Stopwatch logic
+  useEffect(() => {
+    let interval;
+    if (isRunning) {
+      interval = setInterval(() => {
+        setTime(prevTime => prevTime + 10);
+      }, 10);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning]);
+
+  const startStopwatch = () => setIsRunning(true);
+  const pauseStopwatch = () => setIsRunning(false);
+  const resetStopwatch = () => {
+    setIsRunning(false);
+    setTime(0);
+  };
+
+  const formatTime = (time) => {
+    const hours = Math.floor(time / 3600000);
+    const minutes = Math.floor((time % 3600000) / 60000);
+    const seconds = Math.floor((time % 60000) / 1000);
+    const milliseconds = Math.floor((time % 1000) / 10);
+
+    return `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds
+      .toString()
+      .padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -254,6 +290,46 @@ const Dashboard = () => {
                 />
               </PieChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Stopwatch Section */}
+      <div className={`p-6 rounded-xl shadow-lg mb-6 ${
+        darkMode 
+          ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50" 
+          : "bg-gradient-to-br from-white/80 to-slate-50/80 border border-slate-200/50"
+      }`}>
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <FaClock className="text-amber-500" />
+          <span>Task Timer</span>
+        </h2>
+        <div className="flex flex-col items-center justify-center py-4">
+          <div className="text-4xl font-mono font-bold mb-6">
+            {formatTime(time)}
+          </div>
+          <div className="flex gap-4">
+            {!isRunning ? (
+              <button 
+                onClick={startStopwatch}
+                className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+              >
+                <FaPlay /> Start
+              </button>
+            ) : (
+              <button 
+                onClick={pauseStopwatch}
+                className="flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors"
+              >
+                <FaPause /> Pause
+              </button>
+            )}
+            <button 
+              onClick={resetStopwatch}
+              className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+            >
+              <FaStop /> Reset
+            </button>
           </div>
         </div>
       </div>
