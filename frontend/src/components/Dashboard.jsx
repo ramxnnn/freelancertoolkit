@@ -206,9 +206,9 @@ const Dashboard = () => {
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <FaProjectDiagram className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+          <FaTasks className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
           <span className="text-sm">
-            Project: {projects.find(p => p._id === task.projectId)?.name || "No Project"}
+            {task.description || "No description"}
           </span>
         </div>
       </div>
