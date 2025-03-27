@@ -302,7 +302,7 @@ const Dashboard = () => {
       }`}>
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <FaClock className="text-amber-500" />
-          <span>Task Timer</span>
+          <span>StopWatch</span>
         </h2>
         <div className="flex flex-col items-center justify-center py-4">
           <div className="text-4xl font-mono font-bold mb-6">
