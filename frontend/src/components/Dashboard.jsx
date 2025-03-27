@@ -12,7 +12,9 @@ import {
   FaProjectDiagram,
   FaPlay,
   FaPause,
-  FaStop
+  FaStop,
+  FaCheck,
+  FaSpinner
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
@@ -110,6 +112,108 @@ const Dashboard = () => {
   ];
   
   const COLORS = ["#10B981", "#EF4444"];
+
+  const ProjectCard = ({ project }) => (
+    <motion.div
+      whileHover={{ y: -5 }}
+      className={`p-5 rounded-lg border ${
+        darkMode 
+          ? "bg-slate-800/60 border-slate-700/50 hover:border-slate-600/50" 
+          : "bg-white/60 border-slate-200/50 hover:border-slate-300/50"
+      } transition-all shadow-sm hover:shadow-md`}
+    >
+      <h3 className="text-xl font-semibold mb-3 text-blue-600 dark:text-blue-400">
+        {project.name}
+      </h3>
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <FaCalendarAlt className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+          <span className="text-sm">
+            Due: {new Date(project.dueDate).toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'short', 
+              day: 'numeric' 
+            })}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <FaMapMarkerAlt className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+          <span className="text-sm">{project.location}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <FaClock className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+          <span className="text-sm">Timezone: {project.timezone}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <FaDollarSign className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+          <span className="text-sm">Currency: {project.currency}</span>
+        </div>
+      </div>
+      <div className="mt-4 flex justify-between items-center">
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+          project.status === "Completed" 
+            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
+            : project.status === "Pending"
+              ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+              : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+        }`}>
+          {project.status}
+        </span>
+      </div>
+    </motion.div>
+  );
+
+  const TaskCard = ({ task }) => (
+    <motion.div
+      whileHover={{ y: -5 }}
+      className={`p-5 rounded-lg border ${
+        darkMode 
+          ? "bg-slate-800/60 border-slate-700/50 hover:border-slate-600/50" 
+          : "bg-white/60 border-slate-200/50 hover:border-slate-300/50"
+      } transition-all shadow-sm hover:shadow-md`}
+    >
+      <div className="flex justify-between items-start mb-3">
+        <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+          {task.name}
+        </h3>
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+          task.status === "Completed" 
+            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
+            : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+        }`}>
+          {task.status}
+        </span>
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <FaCalendarAlt className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+          <span className="text-sm">
+            Due: {new Date(task.dueDate).toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'short', 
+              day: 'numeric' 
+            })}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          {task.status === "Completed" ? (
+            <FaCheck className="text-green-500 dark:text-green-400 flex-shrink-0" />
+          ) : (
+            <FaSpinner className="text-amber-500 dark:text-amber-400 flex-shrink-0" />
+          )}
+          <span className="text-sm">
+            {task.status === "Completed" ? "Completed" : "In Progress"}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <FaProjectDiagram className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
+          <span className="text-sm">
+            Project: {projects.find(p => p._id === task.projectId)?.name || "No Project"}
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
 
   return (
     <div className={`transition-colors duration-300 ${darkMode ? "bg-slate-900 text-slate-100" : "bg-slate-50 text-slate-900"} min-h-screen p-4 md:p-6`}>
@@ -334,6 +438,33 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Pending Projects */}
+      <div className={`p-6 rounded-xl shadow-lg mb-6 ${
+        darkMode 
+          ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50" 
+          : "bg-gradient-to-br from-white/80 to-slate-50/80 border border-slate-200/50"
+      }`}>
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <FaProjectDiagram className="text-amber-500" />
+          <span>Pending Projects</span>
+        </h2>
+        {projects.filter(project => project.status === "Pending").length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {projects
+              .filter(project => project.status === "Pending")
+              .map(project => (
+                <ProjectCard key={project._id} project={project} />
+              ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-slate-500 dark:text-slate-400">
+              No pending projects. Great job!
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Completed Projects */}
       <div className={`p-6 rounded-xl shadow-lg mb-6 ${
         darkMode 
@@ -341,7 +472,7 @@ const Dashboard = () => {
           : "bg-gradient-to-br from-white/80 to-slate-50/80 border border-slate-200/50"
       }`}>
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <FaProjectDiagram className="text-purple-500" />
+          <FaProjectDiagram className="text-green-500" />
           <span>Completed Projects</span>
         </h2>
         {projects.filter(project => project.status === "Completed").length > 0 ? (
@@ -349,52 +480,7 @@ const Dashboard = () => {
             {projects
               .filter(project => project.status === "Completed")
               .map(project => (
-                <motion.div
-                  key={project._id}
-                  whileHover={{ y: -5 }}
-                  className={`p-5 rounded-lg border ${
-                    darkMode 
-                      ? "bg-slate-800/60 border-slate-700/50 hover:border-slate-600/50" 
-                      : "bg-white/60 border-slate-200/50 hover:border-slate-300/50"
-                  } transition-all shadow-sm hover:shadow-md`}
-                >
-                  <h3 className="text-xl font-semibold mb-3 text-blue-600 dark:text-blue-400">
-                    {project.name}
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <FaCalendarAlt className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
-                      <span className="text-sm">
-                        Due: {new Date(project.dueDate).toLocaleDateString('en-US', { 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <FaMapMarkerAlt className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
-                      <span className="text-sm">{project.location}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <FaClock className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
-                      <span className="text-sm">Timezone: {project.timezone}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <FaDollarSign className="text-slate-500 dark:text-slate-400 flex-shrink-0" />
-                      <span className="text-sm">Currency: {project.currency}</span>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex justify-between items-center">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      project.status === "Completed" 
-                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
-                        : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                    }`}>
-                      {project.status}
-                    </span>
-                  </div>
-                </motion.div>
+                <ProjectCard key={project._id} project={project} />
               ))}
           </div>
         ) : (
@@ -404,6 +490,66 @@ const Dashboard = () => {
             </p>
           </div>
         )}
+      </div>
+
+      {/* Tasks Section */}
+      <div className={`p-6 rounded-xl shadow-lg mb-6 ${
+        darkMode 
+          ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50" 
+          : "bg-gradient-to-br from-white/80 to-slate-50/80 border border-slate-200/50"
+      }`}>
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <FaTasks className="text-indigo-500" />
+          <span>Tasks Overview</span>
+        </h2>
+        
+        {/* Completed Tasks */}
+        <div className="mb-8">
+          <h3 className="text-md font-medium mb-3 flex items-center gap-2 text-green-600 dark:text-green-400">
+            <FaCheck className="text-green-500 dark:text-green-400" />
+            <span>Completed Tasks ({tasks.filter(t => t.status === "Completed").length})</span>
+          </h3>
+          {tasks.filter(t => t.status === "Completed").length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tasks
+                .filter(task => task.status === "Completed")
+                .slice(0, 3)
+                .map(task => (
+                  <TaskCard key={task._id} task={task} />
+                ))}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-slate-500 dark:text-slate-400">
+                No completed tasks yet.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Pending Tasks */}
+        <div>
+          <h3 className="text-md font-medium mb-3 flex items-center gap-2 text-amber-600 dark:text-amber-400">
+            <FaSpinner className="text-amber-500 dark:text-amber-400" />
+            <span>Pending Tasks ({tasks.filter(t => t.status === "Pending").length})</span>
+          </h3>
+          {tasks.filter(t => t.status === "Pending").length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tasks
+                .filter(task => task.status === "Pending")
+                .slice(0, 3)
+                .map(task => (
+                  <TaskCard key={task._id} task={task} />
+                ))}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-slate-500 dark:text-slate-400">
+                No pending tasks. Great job!
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Recent Invoices */}
