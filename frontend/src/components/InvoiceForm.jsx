@@ -71,7 +71,7 @@ const InvoiceForm = ({ onInvoiceCreated }) => {
         status
       };
 
-      const response = await fetch('http://localhost:8888/invoices', {
+      const response = await fetch('https://freelancerbackend.vercel.app/invoices', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
