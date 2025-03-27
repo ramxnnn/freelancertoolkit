@@ -5,7 +5,6 @@ import Card from './Card';
 import Button from './Button';
 import Input from './Input';
 
-// Reducer function for currency converter
 const initialState = {
   fromCurrency: 'USD',
   toCurrency: 'EUR',
@@ -41,10 +40,32 @@ function currencyReducer(state, action) {
   }
 }
 
+// A comprehensive list of currency codes (ISO 4217)
+const currencies = [
+  'AED', 'AFN', 'ALL', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'AWG', 'AZN',
+  'BAM', 'BBD', 'BDT', 'BGN', 'BHD', 'BIF', 'BMD', 'BND', 'BOB', 'BRL',
+  'BSD', 'BTN', 'BWP', 'BYN', 'BZD', 'CAD', 'CDF', 'CHF', 'CLP', 'CNY',
+  'COP', 'CRC', 'CUC', 'CUP', 'CVE', 'CZK', 'DJF', 'DKK', 'DOP', 'DZD',
+  'EGP', 'ERN', 'ETB', 'EUR', 'FJD', 'FKP', 'FOK', 'GBP', 'GEL', 'GGP',
+  'GHS', 'GIP', 'GMD', 'GNF', 'GTQ', 'GYD', 'HKD', 'HNL', 'HRK', 'HTG',
+  'HUF', 'IDR', 'ILS', 'IMP', 'INR', 'IQD', 'IRR', 'ISK', 'JMD', 'JOD',
+  'JPY', 'KES', 'KGS', 'KHR', 'KID', 'KMF', 'KRW', 'KWD', 'KYD', 'KZT',
+  'LAK', 'LBP', 'LKR', 'LRD', 'LSL', 'LYD', 'MAD', 'MDL', 'MGA', 'MKD',
+  'MMK', 'MNT', 'MOP', 'MRU', 'MUR', 'MVR', 'MWK', 'MXN', 'MYR', 'MZN',
+  'NAD', 'NGN', 'NIO', 'NOK', 'NPR', 'NZD', 'OMR', 'PAB', 'PEN', 'PGK',
+  'PHP', 'PKR', 'PLN', 'PYG', 'QAR', 'RON', 'RSD', 'RUB', 'RWF', 'SAR',
+  'SBD', 'SCR', 'SDG', 'SEK', 'SGD', 'SHP', 'SLE', 'SLL', 'SOS', 'SRD',
+  'SSP', 'STN', 'SYP', 'SZL', 'THB', 'TJS', 'TMT', 'TND', 'TOP', 'TRY',
+  'TTD', 'TVD', 'TWD', 'TZS', 'UAH', 'UGX', 'USD', 'UYU', 'UZS', 'VES',
+  'VND', 'VUV', 'WST', 'XAF', 'XCD', 'XDR', 'XOF', 'XPF', 'YER', 'ZAR',
+  'ZMW', 'ZWL'
+];
+
 const CurrencyConverter = () => {
   const [state, dispatch] = useReducer(currencyReducer, initialState);
 
   const handleConvert = async () => {
+    // Ensure amount is a valid number
     if (!state.amount || state.amount <= 0) {
       dispatch({ type: 'SET_ERROR', payload: 'Please enter a valid amount' });
       return;
@@ -56,7 +77,12 @@ const CurrencyConverter = () => {
     try {
       const result = await getExchangeRate(state.fromCurrency, state.toCurrency, state.amount);
       if (result && result.convertedAmount) {
-        dispatch({ type: 'SET_CONVERTED_AMOUNT', payload: result.convertedAmount });
+        // Convert the result to a number before storing it in state
+        const numericConvertedAmount = Number(result.convertedAmount);
+        if (isNaN(numericConvertedAmount)) {
+          throw new Error('Conversion result is not a valid number');
+        }
+        dispatch({ type: 'SET_CONVERTED_AMOUNT', payload: numericConvertedAmount });
       } else {
         throw new Error('Invalid conversion result');
       }
@@ -68,8 +94,6 @@ const CurrencyConverter = () => {
   const handleSwapCurrencies = () => {
     dispatch({ type: 'SWAP_CURRENCIES' });
   };
-
-  const popularCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'INR'];
 
   return (
     <section id="currency" className="container mx-auto p-4 max-w-2xl">
@@ -93,7 +117,7 @@ const CurrencyConverter = () => {
                 value={state.fromCurrency}
                 onChange={(e) => dispatch({ type: 'SET_FROM_CURRENCY', payload: e.target.value })}
               >
-                {popularCurrencies.map(currency => (
+                {currencies.map(currency => (
                   <option key={currency} value={currency}>{currency}</option>
                 ))}
               </select>
@@ -126,7 +150,7 @@ const CurrencyConverter = () => {
                 value={state.toCurrency}
                 onChange={(e) => dispatch({ type: 'SET_TO_CURRENCY', payload: e.target.value })}
               >
-                {popularCurrencies.map(currency => (
+                {currencies.map(currency => (
                   <option key={currency} value={currency}>{currency}</option>
                 ))}
               </select>
@@ -147,7 +171,7 @@ const CurrencyConverter = () => {
             min="0"
             step="0.01"
             value={state.amount}
-            onChange={(e) => dispatch({ type: 'SET_AMOUNT', payload: e.target.value })}
+            onChange={(e) => dispatch({ type: 'SET_AMOUNT', payload: parseFloat(e.target.value) || 0 })}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             placeholder="Enter amount"
           />
